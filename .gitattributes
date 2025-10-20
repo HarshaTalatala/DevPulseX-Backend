@@ -1,0 +1,30 @@
+# Auto-detect text files and normalize to LF in the repo
+* text=auto
+
+# Explicit text types
+*.java     text
+*.xml      text
+*.properties text
+*.yml      text
+*.yaml     text
+*.md       text
+*.json     text
+*.pom      text
+
+# Shell scripts: keep LF
+*.sh       text eol=lf
+
+# Windows scripts: CRLF
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+
+# Binary files
+*.jar      binary
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+
+# Ignore git attributes for generated files (optional)
+# /target/ export-ignore
+
