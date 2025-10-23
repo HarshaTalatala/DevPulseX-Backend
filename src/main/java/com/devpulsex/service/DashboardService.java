@@ -1,24 +1,39 @@
 package com.devpulsex.service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.devpulsex.dto.dashboard.DashboardDto;
 import com.devpulsex.dto.dashboard.ProjectMetricsDto;
 import com.devpulsex.dto.dashboard.UserMetricsDto;
 import com.devpulsex.exception.ResourceNotFoundException;
-import com.devpulsex.model.*;
-import com.devpulsex.repository.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
+import com.devpulsex.model.Commit;
+import com.devpulsex.model.Deployment;
+import com.devpulsex.model.DeploymentStatus;
+import com.devpulsex.model.Issue;
+import com.devpulsex.model.IssueStatus;
+import com.devpulsex.model.Project;
+import com.devpulsex.model.TaskStatus;
+import com.devpulsex.model.User;
+import com.devpulsex.repository.CommitRepository;
+import com.devpulsex.repository.DeploymentRepository;
+import com.devpulsex.repository.IssueRepository;
+import com.devpulsex.repository.ProjectRepository;
+import com.devpulsex.repository.TaskRepository;
+import com.devpulsex.repository.TeamRepository;
+import com.devpulsex.repository.UserRepository;
 
 @Service
 public class DashboardService {
-
-    private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -26,19 +41,22 @@ public class DashboardService {
     private final CommitRepository commitRepository;
     private final IssueRepository issueRepository;
     private final DeploymentRepository deploymentRepository;
+    private final TeamRepository teamRepository;
 
     public DashboardService(ProjectRepository projectRepository,
                              UserRepository userRepository,
                              TaskRepository taskRepository,
                              CommitRepository commitRepository,
                              IssueRepository issueRepository,
-                             DeploymentRepository deploymentRepository) {
+                             DeploymentRepository deploymentRepository,
+                             TeamRepository teamRepository) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
         this.commitRepository = commitRepository;
         this.issueRepository = issueRepository;
         this.deploymentRepository = deploymentRepository;
+        this.teamRepository = teamRepository;
     }
 
     public List<ProjectMetricsDto> getAllProjectMetrics() {
@@ -180,6 +198,7 @@ public class DashboardService {
 
         long totalProjects = projectMetrics.size();
         long totalUsers = userMetrics.size();
+        long totalTeams = teamRepository.count();
 
         // Aggregate totals and status maps
         long totalTasks = 0;
@@ -212,6 +231,7 @@ public class DashboardService {
         return DashboardDto.builder()
                 .totalProjects(totalProjects)
                 .totalUsers(totalUsers)
+                .totalTeams(totalTeams)
                 .totalTasks(totalTasks)
                 .tasksByStatus(tasksByStatus)
                 .totalCommits(totalCommits)

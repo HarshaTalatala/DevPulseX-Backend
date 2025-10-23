@@ -1,5 +1,11 @@
 package com.devpulsex.service;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.devpulsex.dto.task.TaskDto;
 import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.Project;
@@ -9,11 +15,6 @@ import com.devpulsex.model.User;
 import com.devpulsex.repository.ProjectRepository;
 import com.devpulsex.repository.TaskRepository;
 import com.devpulsex.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class TaskService {
@@ -61,7 +62,7 @@ public class TaskService {
         return toDto(taskRepository.save(task));
     }
 
-    // Business logic: transition task status (e.g., TODO->IN_PROGRESS->REVIEW->DONE)
+    // Business logic: transition task status
     public TaskDto transitionStatus(Long taskId, TaskStatus newStatus) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
         TaskStatus current = task.getStatus();

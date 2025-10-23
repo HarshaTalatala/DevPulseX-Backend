@@ -1,21 +1,18 @@
 package com.devpulsex.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.devpulsex.dto.project.ProjectDto;
 import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.Project;
 import com.devpulsex.model.Team;
 import com.devpulsex.repository.ProjectRepository;
 import com.devpulsex.repository.TeamRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ProjectService {
-    private static final Logger log = LoggerFactory.getLogger(ProjectService.class);
-
     private final ProjectRepository projectRepository;
     private final TeamRepository teamRepository;
 

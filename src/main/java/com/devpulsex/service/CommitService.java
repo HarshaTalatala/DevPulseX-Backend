@@ -1,5 +1,10 @@
 package com.devpulsex.service;
 
+import java.time.Instant;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.devpulsex.dto.commit.CommitDto;
 import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.Commit;
@@ -8,17 +13,9 @@ import com.devpulsex.model.User;
 import com.devpulsex.repository.CommitRepository;
 import com.devpulsex.repository.ProjectRepository;
 import com.devpulsex.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.List;
 
 @Service
 public class CommitService {
-    private static final Logger log = LoggerFactory.getLogger(CommitService.class);
-
     private final CommitRepository commitRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;

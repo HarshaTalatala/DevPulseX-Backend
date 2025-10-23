@@ -1,9 +1,13 @@
 package com.devpulsex.dto.dashboard;
 
-import lombok.*;
-
 import java.util.List;
 import java.util.Map;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -14,6 +18,7 @@ public class DashboardDto {
     // Aggregated counts across all projects/users
     private long totalProjects;
     private long totalUsers;
+    private long totalTeams;
 
     private long totalTasks;
     private Map<String, Long> tasksByStatus; // status -> count

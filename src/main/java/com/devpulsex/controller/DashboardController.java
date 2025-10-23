@@ -1,11 +1,7 @@
 package com.devpulsex.controller;
 
-import com.devpulsex.dto.dashboard.DashboardDto;
-import com.devpulsex.dto.dashboard.ProjectMetricsDto;
-import com.devpulsex.dto.dashboard.UserMetricsDto;
-import com.devpulsex.service.DashboardService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,10 +9,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.devpulsex.dto.dashboard.DashboardDto;
+import com.devpulsex.dto.dashboard.ProjectMetricsDto;
+import com.devpulsex.dto.dashboard.UserMetricsDto;
+import com.devpulsex.service.DashboardService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping({"/api/dashboard", "/dashboard"})
+@RequestMapping("/api/dashboard")
 @Tag(name = "Dashboard", description = "Project and user metrics and summaries")
 public class DashboardController {
 

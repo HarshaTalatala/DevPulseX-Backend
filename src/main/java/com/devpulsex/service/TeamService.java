@@ -1,23 +1,20 @@
 package com.devpulsex.service;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.stereotype.Service;
+
 import com.devpulsex.dto.team.TeamDto;
 import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.Team;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.TeamRepository;
 import com.devpulsex.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Service
 public class TeamService {
-    private static final Logger log = LoggerFactory.getLogger(TeamService.class);
-
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
 
