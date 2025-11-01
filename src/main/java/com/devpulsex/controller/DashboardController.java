@@ -31,7 +31,7 @@ public class DashboardController {
     }
 
     @GetMapping("/projects")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get project-level metrics")
     public List<ProjectMetricsDto> getProjectMetrics() {
         log.debug("Fetching project metrics");
@@ -39,7 +39,7 @@ public class DashboardController {
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get user-level metrics")
     public List<UserMetricsDto> getUserMetrics() {
         log.debug("Fetching user metrics");
@@ -47,7 +47,7 @@ public class DashboardController {
     }
 
     @GetMapping("/summary")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get dashboard summary")
     public DashboardDto getSummary() {
         log.debug("Fetching dashboard summary");
