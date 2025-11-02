@@ -20,19 +20,28 @@ public class GitHubService {
     private final WebClient webClient = WebClient.builder().build();
 
     public GithubInsightsResponse fetchInsights(String username, String accessToken) {
-        log.info("Fetching GitHub insights for user: {}", username);
+        log.info("=== Starting GitHub insights fetch for user: {} ===", username);
         try {
             // Fetch user profile data
+            log.debug("Fetching user profile...");
             JsonNode userProfile = fetchUserProfile(username, accessToken);
             
             // Fetch activity metrics
+            log.debug("Fetching repo count...");
             int repoCount = fetchRepoCount(accessToken);
+            log.debug("Fetching total pull requests...");
             int prTotal = fetchTotalPullRequests(username, accessToken);
+            log.debug("Fetching total issues...");
             int issueTotal = fetchTotalIssues(username, accessToken);
+            log.debug("Fetching recent commits (last 7 days)...");
             int recentCommits = fetchRecentCommitCount(username, accessToken);
+            log.debug("Fetching recent PRs (last 7 days)...");
             int recentPRs = fetchRecentPRCount(username, accessToken);
+            log.debug("Fetching recent issues (last 7 days)...");
             int recentIssuesCount = fetchRecentIssuesCount(username, accessToken);
+            log.debug("Fetching total stars...");
             int totalStars = fetchTotalStars(accessToken);
+            log.debug("Fetching most active repo...");
             String mostActiveRepo = fetchMostActiveRepo(username, accessToken);
             
             // Extract profile data
@@ -40,8 +49,13 @@ public class GitHubService {
             int following = userProfile != null ? userProfile.path("following").asInt(0) : 0;
             int publicGists = userProfile != null ? userProfile.path("public_gists").asInt(0) : 0;
             
-            log.info("GitHub insights fetched successfully for {}: repos={}, PRs={}, commits={}, stars={}",
-                    username, repoCount, prTotal, recentCommits, totalStars);
+            log.info("=== GitHub insights fetched successfully for {} ===", username);
+            log.info("Total Stats: repos={}, totalPRs={}, totalIssues={}, stars={}", 
+                    repoCount, prTotal, issueTotal, totalStars);
+            log.info("Recent Activity (7 days): commits={}, PRs={}, issues={}", 
+                    recentCommits, recentPRs, recentIssuesCount);
+            log.info("Profile: followers={}, following={}, gists={}, mostActiveRepo={}", 
+                    followers, following, publicGists, mostActiveRepo);
             
             return GithubInsightsResponse.builder()
                     .username(username)
@@ -146,12 +160,14 @@ public class GitHubService {
         try {
             Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
             String dateStr = cutoff.toString().substring(0, 10);
+            String query = "type:pr+author:" + username + "+created:>=" + dateStr;
+            log.debug("Fetching recent PRs with query: {}", query);
             JsonNode search = webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https")
                             .host("api.github.com")
                             .path("/search/issues")
-                            .queryParam("q", "type:pr+author:" + username + "+created:>=" + dateStr)
+                            .queryParam("q", query)
                             .queryParam("per_page", "1")
                             .build())
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -159,9 +175,11 @@ public class GitHubService {
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .block();
-            return search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
+            int count = search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
+            log.info("Found {} recent PRs for user: {}", count, username);
+            return count;
         } catch (Exception e) {
-            log.warn("Error fetching recent PRs: {}", e.getMessage());
+            log.error("Error fetching recent PRs for user {}: {}", username, e.getMessage(), e);
             return 0;
         }
     }
@@ -170,12 +188,14 @@ public class GitHubService {
         try {
             Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
             String dateStr = cutoff.toString().substring(0, 10);
+            String query = "type:issue+author:" + username + "+created:>=" + dateStr;
+            log.debug("Fetching recent issues with query: {}", query);
             JsonNode search = webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https")
                             .host("api.github.com")
                             .path("/search/issues")
-                            .queryParam("q", "type:issue+author:" + username + "+created:>=" + dateStr)
+                            .queryParam("q", query)
                             .queryParam("per_page", "1")
                             .build())
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -183,9 +203,11 @@ public class GitHubService {
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .block();
-            return search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
+            int count = search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
+            log.info("Found {} recent issues for user: {}", count, username);
+            return count;
         } catch (Exception e) {
-            log.warn("Error fetching recent issues: {}", e.getMessage());
+            log.error("Error fetching recent issues for user {}: {}", username, e.getMessage(), e);
             return 0;
         }
     }
@@ -300,23 +322,34 @@ public class GitHubService {
                     .retrieve()
                     .bodyToMono(JsonNode.class)
                     .block();
-            if (events == null || !events.isArray()) return 0;
+            if (events == null || !events.isArray()) {
+                log.warn("No events returned for user: {}", username);
+                return 0;
+            }
             Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
             int commits = 0;
+            log.debug("Processing {} events for user: {}", events.size(), username);
             for (JsonNode ev : events) {
                 String type = ev.path("type").asText("");
                 String createdAt = ev.path("created_at").asText("");
                 if ("PushEvent".equals(type) && !createdAt.isEmpty()) {
-                    Instant t = Instant.parse(createdAt);
-                    if (t.isAfter(cutoff)) {
-                        // payload.size is number of commits in push
-                        commits += ev.path("payload").path("size").asInt(0);
+                    try {
+                        Instant t = Instant.parse(createdAt);
+                        if (t.isAfter(cutoff)) {
+                            // payload.size is number of commits in push
+                            int pushSize = ev.path("payload").path("size").asInt(0);
+                            commits += pushSize;
+                            log.debug("Found PushEvent with {} commits at {}", pushSize, createdAt);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Error parsing event timestamp: {}", createdAt);
                     }
                 }
             }
+            log.info("Found {} recent commits for user: {}", commits, username);
             return commits;
         } catch (Exception e) {
-            log.warn("Error fetching recent commits: {}", e.getMessage());
+            log.error("Error fetching recent commits for user {}: {}", username, e.getMessage(), e);
             return 0;
         }
     }

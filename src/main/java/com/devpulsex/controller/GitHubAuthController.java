@@ -26,6 +26,7 @@ import com.devpulsex.service.GitHubOAuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,8 +52,9 @@ public class GitHubAuthController {
 
     @PostMapping("/github")
     @Operation(summary = "Exchange GitHub code for JWT and user info")
-    public ResponseEntity<AuthResponse> githubLogin(@RequestBody GitHubAuthRequest request) {
+    public ResponseEntity<AuthResponse> githubLogin(@Valid @RequestBody GitHubAuthRequest request) {
         try {
+            log.info("Received GitHub OAuth request: {}", request);
             log.info("GitHub OAuth login attempt with code={}", request.getCode());
             GitHubTokenResponse tokenResp = oAuthService.exchangeCodeForToken(request.getCode());
             if (tokenResp == null || tokenResp.getAccessToken() == null) {
