@@ -1,12 +1,11 @@
 services:
   - type: web
     name: devpulsex-backend
-    env: java
-    buildCommand: ./mvnw clean package -DskipTests
-    startCommand: java -Dserver.port=$PORT -jar target/DevPulseX-Backend-1.0.0-mvp.jar
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    autoDeploy: true
     envVars:
-      - key: JAVA_VERSION
-        value: 21
       - key: DATABASE_URL
         fromDatabase:
           name: devpulsex-db
