@@ -93,13 +93,17 @@ public class GitHubAuthController {
                         .githubAvatarUrl(profile.getAvatarUrl())
                         .githubAccessToken(tokenResp.getAccessToken())
                         .build();
+                log.info("Created new user from GitHub OAuth: email={}", email);
             } else {
+                // Update existing user with GitHub OAuth data (preserving Google data if exists)
                 user.setName(name);
                 user.setEmail(email);
                 user.setGithubId(profile.getId());
                 user.setGithubUsername(profile.getLogin());
                 user.setGithubAvatarUrl(profile.getAvatarUrl());
                 user.setGithubAccessToken(tokenResp.getAccessToken());
+                log.info("Linked GitHub account to existing user: email={}, hasGoogle={}", 
+                    email, user.getGoogleId() != null);
             }
 
             userRepository.save(user);

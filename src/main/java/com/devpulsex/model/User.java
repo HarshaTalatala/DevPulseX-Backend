@@ -1,10 +1,22 @@
 package com.devpulsex.model;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -48,4 +60,24 @@ public class User {
     // Note: In production, encrypt or store securely (e.g., token table + KMS)
     @Column(name = "github_access_token", length = 2048)
     private String githubAccessToken;
+
+    // Google OAuth fields
+    @Column(name = "google_id")
+    private String googleId;
+
+    @Column(name = "google_email")
+    private String googleEmail;
+
+    @Column(name = "google_name")
+    private String googleName;
+
+    @Column(name = "google_picture_url")
+    private String googlePictureUrl;
+
+    // Note: In production, encrypt or store securely (e.g., token table + KMS)
+    @Column(name = "google_access_token", length = 2048)
+    private String googleAccessToken;
+
+    @Column(name = "google_refresh_token", length = 2048)
+    private String googleRefreshToken;
 }
