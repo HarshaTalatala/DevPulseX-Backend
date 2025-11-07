@@ -13,7 +13,7 @@ public class DevPulseXBackendApplication {
                     .ignoreIfMissing()
                     .load();
             dotenv.entries().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
-        } catch (Exception e) {
+        } catch (io.github.cdimascio.dotenv.DotenvException e) {
             System.err.println("Warning: Could not load .env file: " + e.getMessage());
         }
         
