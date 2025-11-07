@@ -5,6 +5,8 @@ import java.time.temporal.ChronoUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class GitHubService {
 
     private static final Logger log = LoggerFactory.getLogger(GitHubService.class);
-    private final WebClient webClient = WebClient.builder().build();
+    private final WebClient webClient;
+    
+    // Inject the configured WebClient with rate limit handling
+    public GitHubService(@Qualifier("githubWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
+    /**
+     * Fetch GitHub insights with caching enabled.
+     * Results are cached for 5 minutes to reduce GitHub API calls.
+     * Cache key is based on username to ensure user-specific caching.
+     * 
+     * Note: This method throws exceptions on rate limits or API errors.
+     * Use ResilientGitHubService for automatic fallback to cache.
+     */
+    @Cacheable(value = "githubInsights", key = "#username")
     public GithubInsightsResponse fetchInsights(String username, String accessToken) {
-        log.info("=== Starting GitHub insights fetch for user: {} ===", username);
+        log.info("=== Starting GitHub insights fetch for user: {} (CACHE MISS) ===", username);
         try {
             // Fetch user profile data
             log.debug("Fetching user profile...");
@@ -354,8 +370,13 @@ public class GitHubService {
         }
     }
 
+    /**
+     * Fetch user's GitHub repositories with caching.
+     * Cache key is based on accessToken hash to ensure user-specific caching.
+     */
+    @Cacheable(value = "githubRepositories", key = "#accessToken.hashCode()")
     public JsonNode fetchRepositories(String accessToken) {
-        log.info("Fetching GitHub repositories");
+        log.info("Fetching GitHub repositories (CACHE MISS)");
         try {
             String uri = "https://api.github.com/user/repos?per_page=100&sort=updated";
             JsonNode response = webClient.get()
