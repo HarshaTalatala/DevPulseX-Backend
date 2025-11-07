@@ -34,15 +34,18 @@ Desktop.ini
 
 # Environment variables and secrets
 .env
-.env.*
 .env.local
+.env.development
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
+!.env.example
 *.properties.local
 *.secret
 /secrets/
 application-secrets.properties
+src/main/resources/application.properties
 
 # Keystores and sensitive files
 *.jks
