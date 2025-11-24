@@ -17,4 +17,6 @@ public class ProjectDto {
     private String name;
     @NotNull
     private Long teamId;
+    // Optional Trello board linkage
+    private String trelloBoardId;
 }

@@ -42,6 +42,7 @@ public class DashboardService {
     private final IssueRepository issueRepository;
     private final DeploymentRepository deploymentRepository;
     private final TeamRepository teamRepository;
+    private final TrelloService trelloService;
 
     public DashboardService(ProjectRepository projectRepository,
                              UserRepository userRepository,
@@ -49,7 +50,8 @@ public class DashboardService {
                              CommitRepository commitRepository,
                              IssueRepository issueRepository,
                              DeploymentRepository deploymentRepository,
-                             TeamRepository teamRepository) {
+                             TeamRepository teamRepository,
+                             TrelloService trelloService) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
@@ -57,6 +59,7 @@ public class DashboardService {
         this.issueRepository = issueRepository;
         this.deploymentRepository = deploymentRepository;
         this.teamRepository = teamRepository;
+        this.trelloService = trelloService;
     }
 
     public List<ProjectMetricsDto> getAllProjectMetrics() {
@@ -242,5 +245,24 @@ public class DashboardService {
                 .projects(projectMetrics)
                 .users(userMetrics)
                 .build();
+    }
+
+    // Trello aggregation for a board id. Returns { lists: [ { listId, listName, cards: [...] } ] }
+    public Map<String, Object> getTrelloDashboardForBoard(String boardId) {
+        if (boardId == null || boardId.isBlank()) {
+            throw new IllegalArgumentException("boardId must not be blank");
+        }
+        return trelloService.buildBoardAggregate(boardId);
+    }
+
+    // Convenience by project id (pull boardId from project)
+    public Map<String, Object> getTrelloDashboardForProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+        String boardId = project.getTrelloBoardId();
+        if (boardId == null || boardId.isBlank()) {
+            throw new IllegalArgumentException("Project does not have a trelloBoardId configured");
+        }
+        return trelloService.buildBoardAggregate(boardId);
     }
 }

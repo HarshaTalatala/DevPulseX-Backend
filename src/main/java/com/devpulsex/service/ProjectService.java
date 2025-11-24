@@ -33,7 +33,7 @@ public class ProjectService {
     public ProjectDto create(ProjectDto dto) {
         Team team = teamRepository.findById(dto.getTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + dto.getTeamId()));
-        Project p = Project.builder().name(dto.getName()).team(team).build();
+        Project p = Project.builder().name(dto.getName()).team(team).trelloBoardId(dto.getTrelloBoardId()).build();
         return toDto(projectRepository.save(p));
     }
 
@@ -46,6 +46,8 @@ public class ProjectService {
                     .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + dto.getTeamId()));
             p.setTeam(team);
         }
+        // Allow updating / clearing trelloBoardId
+        p.setTrelloBoardId(dto.getTrelloBoardId());
         return toDto(projectRepository.save(p));
     }
 
@@ -62,6 +64,7 @@ public class ProjectService {
                 .id(p.getId())
                 .name(p.getName())
                 .teamId(teamId)
+            .trelloBoardId(p.getTrelloBoardId())
                 .build();
     }
 }

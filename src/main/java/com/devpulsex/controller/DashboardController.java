@@ -5,9 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.devpulsex.dto.dashboard.DashboardDto;
 import com.devpulsex.dto.dashboard.ProjectMetricsDto;
@@ -52,5 +50,13 @@ public class DashboardController {
     public DashboardDto getSummary() {
         log.debug("Fetching dashboard summary");
         return dashboardService.getDashboardSummary();
+    }
+
+    @GetMapping("/trello/{projectId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
+    @Operation(summary = "Get Trello aggregate for a project")
+    public Object getTrelloForProject(@PathVariable Long projectId) {
+        log.debug("Fetching Trello dashboard for project {}", projectId);
+        return dashboardService.getTrelloDashboardForProject(projectId);
     }
 }
