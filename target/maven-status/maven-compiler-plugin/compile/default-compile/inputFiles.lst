@@ -14,6 +14,7 @@ C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\ProjectController.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\TaskController.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\TeamController.java
+C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\TrelloAuthController.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\TrelloController.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\TrelloSyncController.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\controller\UserController.java
@@ -38,6 +39,8 @@ C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\issue\I
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\project\ProjectDto.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\task\TaskDto.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\team\TeamDto.java
+C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\trello\TrelloAuthRequest.java
+C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\trello\TrelloMemberProfile.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\user\CreateUserRequest.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\user\UpdateUserRequest.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\dto\user\UserDto.java
@@ -76,5 +79,6 @@ C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\Pro
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\ResilientGitHubService.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\TaskService.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\TeamService.java
+C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\TrelloOAuthService.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\TrelloService.java
 C:\Users\harsh\Desktop\DevPulseX\backend\src\main\java\com\devpulsex\service\UserService.java

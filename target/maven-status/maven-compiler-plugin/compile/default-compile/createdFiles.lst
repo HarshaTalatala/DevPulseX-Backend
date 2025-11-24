@@ -6,6 +6,8 @@ com\devpulsex\model\Project$ProjectBuilder.class
 com\devpulsex\dto\google\GoogleUserProfile.class
 com\devpulsex\dto\user\UserDto$UserDtoBuilder.class
 com\devpulsex\model\User$UserBuilder.class
+com\devpulsex\dto\trello\TrelloMemberProfile.class
+com\devpulsex\integration\trello\TrelloClient.class
 com\devpulsex\exception\GlobalExceptionHandler.class
 com\devpulsex\service\ResilientGitHubService.class
 com\devpulsex\dto\auth\LoginRequest.class
@@ -28,7 +30,9 @@ com\devpulsex\model\Commit.class
 com\devpulsex\model\DeploymentStatus.class
 com\devpulsex\repository\ProjectRepository.class
 com\devpulsex\service\CommitService.class
+com\devpulsex\exception\TrelloApiException.class
 com\devpulsex\repository\CommitRepository.class
+com\devpulsex\dto\trello\TrelloAuthRequest.class
 com\devpulsex\controller\TaskController.class
 com\devpulsex\model\Project.class
 com\devpulsex\dto\google\GoogleAuthRequest$GoogleAuthRequestBuilder.class
@@ -54,11 +58,15 @@ com\devpulsex\service\UserService.class
 com\devpulsex\dto\commit\CommitDto.class
 com\devpulsex\model\TaskStatus.class
 com\devpulsex\dto\task\TaskDto$TaskDtoBuilder.class
+com\devpulsex\controller\TrelloSyncController.class
 com\devpulsex\dto\github\GithubInsightsResponse.class
 com\devpulsex\dto\team\TeamDto$TeamDtoBuilder.class
+com\devpulsex\service\TrelloService.class
 com\devpulsex\dto\dashboard\DashboardDto$DashboardDtoBuilder.class
 com\devpulsex\repository\TeamRepository.class
 com\devpulsex\controller\GitHubAnalyticsController.class
+com\devpulsex\service\TrelloOAuthService.class
+com\devpulsex\dto\trello\TrelloAuthRequest$TrelloAuthRequestBuilder.class
 com\devpulsex\dto\GithubRepositoryResponse.class
 com\devpulsex\dto\dashboard\UserMetricsDto$UserMetricsDtoBuilder.class
 com\devpulsex\service\TeamService.class
@@ -86,6 +94,7 @@ com\devpulsex\model\Deployment$DeploymentBuilder.class
 com\devpulsex\config\security\JwtUtil.class
 com\devpulsex\dto\google\GoogleTokenResponse.class
 com\devpulsex\model\IssueStatus.class
+com\devpulsex\controller\TrelloAuthController.class
 com\devpulsex\controller\TeamController.class
 com\devpulsex\dto\github\GithubInsightsResponse$GithubInsightsResponseBuilder.class
 com\devpulsex\dto\deployment\DeploymentDto.class
@@ -93,6 +102,7 @@ com\devpulsex\dto\github\GitHubAuthRequest.class
 com\devpulsex\service\TaskService.class
 com\devpulsex\repository\IssueRepository.class
 com\devpulsex\service\DeploymentService.class
+com\devpulsex\controller\TrelloController.class
 com\devpulsex\dto\task\TaskDto.class
 com\devpulsex\dto\dashboard\ProjectMetricsDto$ProjectMetricsDtoBuilder.class
 com\devpulsex\controller\CommitController.class

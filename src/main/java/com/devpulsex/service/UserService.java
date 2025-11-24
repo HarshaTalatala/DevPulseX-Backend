@@ -1,15 +1,16 @@
 package com.devpulsex.service;
 
+import java.util.List;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.devpulsex.dto.user.CreateUserRequest;
 import com.devpulsex.dto.user.UpdateUserRequest;
 import com.devpulsex.dto.user.UserDto;
 import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class UserService {
@@ -69,12 +70,26 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    private UserDto toDto(User u) {
+    // Public method for auth controllers to build complete UserDto
+    public UserDto toDto(User u) {
+        return buildUserDto(u);
+    }
+
+    private UserDto buildUserDto(User u) {
         return UserDto.builder()
                 .id(u.getId())
                 .name(u.getName())
                 .email(u.getEmail())
                 .role(u.getRole())
+                .githubId(u.getGithubId())
+                .githubUsername(u.getGithubUsername())
+                .githubAvatarUrl(u.getGithubAvatarUrl())
+                .googleId(u.getGoogleId())
+                .googleEmail(u.getGoogleEmail())
+                .googleName(u.getGoogleName())
+                .googlePictureUrl(u.getGooglePictureUrl())
+                .trelloId(u.getTrelloId())
+                .trelloUsername(u.getTrelloUsername())
                 .build();
     }
 }

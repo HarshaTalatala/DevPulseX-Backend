@@ -18,11 +18,11 @@ import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.google.GoogleAuthRequest;
 import com.devpulsex.dto.google.GoogleTokenResponse;
 import com.devpulsex.dto.google.GoogleUserProfile;
-import com.devpulsex.dto.user.UserDto;
 import com.devpulsex.model.Role;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
 import com.devpulsex.service.GoogleOAuthService;
+import com.devpulsex.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,18 +39,19 @@ public class GoogleAuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserService userService;
 
     public GoogleAuthController(GoogleOAuthService oAuthService,
-                                 UserRepository userRepository,
-                                 PasswordEncoder passwordEncoder,
-                                 JwtUtil jwtUtil) {
+                               UserRepository userRepository,
+                               PasswordEncoder passwordEncoder,
+                               JwtUtil jwtUtil,
+                               UserService userService) {
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
-    }
-
-    @PostMapping("/google")
+        this.userService = userService;
+    }    @PostMapping("/google")
     @Operation(summary = "Exchange Google code for JWT and user info")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
         try {
@@ -120,12 +121,7 @@ public class GoogleAuthController {
             
             return ResponseEntity.ok(AuthResponse.builder()
                     .token(jwt)
-                    .user(UserDto.builder()
-                            .id(user.getId())
-                            .name(user.getName())
-                            .email(user.getEmail())
-                            .role(user.getRole())
-                            .build())
+                    .user(userService.toDto(user))
                     .build());
         } catch (Exception ex) {
             log.error("Google OAuth login failed", ex);

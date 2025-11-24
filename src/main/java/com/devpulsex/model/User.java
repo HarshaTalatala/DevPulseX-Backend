@@ -80,4 +80,15 @@ public class User {
 
     @Column(name = "google_refresh_token", length = 2048)
     private String googleRefreshToken;
+
+    // Trello OAuth fields
+    @Column(name = "trello_id")
+    private String trelloId;
+
+    @Column(name = "trello_username")
+    private String trelloUsername;
+
+    // Note: In production, encrypt or store securely (e.g., token table + KMS)
+    @Column(name = "trello_access_token", length = 2048)
+    private String trelloAccessToken;
 }

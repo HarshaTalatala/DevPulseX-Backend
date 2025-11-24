@@ -18,11 +18,11 @@ import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.github.GitHubAuthRequest;
 import com.devpulsex.dto.github.GitHubTokenResponse;
 import com.devpulsex.dto.github.GitHubUserProfile;
-import com.devpulsex.dto.user.UserDto;
 import com.devpulsex.model.Role;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
 import com.devpulsex.service.GitHubOAuthService;
+import com.devpulsex.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,15 +39,18 @@ public class GitHubAuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserService userService;
 
     public GitHubAuthController(GitHubOAuthService oAuthService,
                                 UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
-                                JwtUtil jwtUtil) {
+                                JwtUtil jwtUtil,
+                                UserService userService) {
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.userService = userService;
     }
 
     @PostMapping("/github")
@@ -111,12 +114,7 @@ public class GitHubAuthController {
             String jwt = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
             return ResponseEntity.ok(AuthResponse.builder()
                     .token(jwt)
-                    .user(UserDto.builder()
-                            .id(user.getId())
-                            .name(user.getName())
-                            .email(user.getEmail())
-                            .role(user.getRole())
-                            .build())
+                    .user(userService.toDto(user))
                     .build());
         } catch (Exception ex) {
             log.error("GitHub OAuth login failed", ex);
