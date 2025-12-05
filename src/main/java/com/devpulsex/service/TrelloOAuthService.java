@@ -22,18 +22,15 @@ public class TrelloOAuthService {
     private final String trelloApiKey;
     private final String trelloApiSecret;
     private final String trelloBaseUrl;
-    private final String trelloRedirectUri;
     
     public TrelloOAuthService(WebClient.Builder webClientBuilder,
                              @Value("${trello.api.key}") String trelloApiKey,
-                             @Value("${trello.api.secret}") String trelloApiSecret,
-                             @Value("${trello.api.base-url}") String trelloBaseUrl,
-                             @Value("${trello.redirect-uri}") String trelloRedirectUri) {
+                             @Value("${trello.api.secret:}") String trelloApiSecret,
+                             @Value("${trello.api.base-url}") String trelloBaseUrl) {
         this.webClient = webClientBuilder.build();
         this.trelloApiKey = trelloApiKey;
         this.trelloApiSecret = trelloApiSecret;
         this.trelloBaseUrl = trelloBaseUrl;
-        this.trelloRedirectUri = trelloRedirectUri;
     }
     
     /**
@@ -47,21 +44,23 @@ public class TrelloOAuthService {
         try {
             log.info("Exchanging Trello OAuth token for access token");
             
-            TrelloTokenResponse response = webClient.post()
+            String rawResponse = webClient.post()
                     .uri("https://trello.com/1/OAuthGetAccessToken")
-                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN_VALUE)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .body(BodyInserters.fromFormData("key", trelloApiKey)
-                            .with("secret", trelloApiSecret)
-                            .with("token", oauthToken)
-                            .with("verifier", oauthVerifier))
+                .body(BodyInserters.fromFormData("key", trelloApiKey)
+                    .with("secret", trelloApiSecret)
+                    .with("oauth_token", oauthToken)
+                    .with("oauth_verifier", oauthVerifier))
                     .retrieve()
                     .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
                             .map(body -> new RuntimeException("Trello token error: " + body)))
-                    .bodyToMono(TrelloTokenResponse.class)
+                .bodyToMono(String.class)
                     .block();
-            
-            if (response == null || response.getToken() == null) {
+
+            TrelloTokenResponse response = parseTokenResponse(rawResponse);
+
+            if (response.getToken() == null) {
                 log.error("Failed to exchange Trello token: null response");
                 throw new RuntimeException("Failed to exchange Trello token");
             }
@@ -71,10 +70,34 @@ public class TrelloOAuthService {
         } catch (WebClientResponseException e) {
             log.error("Trello token exchange failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
             throw new RuntimeException("Failed to exchange Trello token: " + e.getMessage(), e);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Trello token exchange unexpected error", e);
-            throw new RuntimeException("Failed to exchange Trello token: " + e.getMessage(), e);
+            throw e;
         }
+    }
+
+    private TrelloTokenResponse parseTokenResponse(String rawResponse) {
+        if (rawResponse == null || rawResponse.isBlank()) {
+            throw new RuntimeException("Empty response when exchanging Trello token");
+        }
+
+        // Trello returns form-encoded key/value pairs (not JSON), e.g. "oauth_token=...&oauth_token_secret=..."
+        String[] pairs = rawResponse.split("&");
+        String token = null;
+        String tokenSecret = null;
+
+        for (String pair : pairs) {
+            String[] kv = pair.split("=", 2);
+            if (kv.length == 2) {
+                if ("oauth_token".equals(kv[0])) token = kv[1];
+                if ("oauth_token_secret".equals(kv[0])) tokenSecret = kv[1];
+            }
+        }
+
+        TrelloTokenResponse response = new TrelloTokenResponse();
+        response.setToken(token);
+        response.setTokenSecret(tokenSecret);
+        return response;
     }
     
     /**
@@ -91,6 +114,8 @@ public class TrelloOAuthService {
             TrelloMemberProfile profile = webClient.get()
                     .uri(url)
                     .retrieve()
+                    .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
+                            .map(body -> new RuntimeException("Trello profile error: " + body)))
                     .bodyToMono(TrelloMemberProfile.class)
                     .block();
             
