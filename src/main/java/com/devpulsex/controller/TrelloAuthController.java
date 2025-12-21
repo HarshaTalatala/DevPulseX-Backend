@@ -64,7 +64,12 @@ public class TrelloAuthController {
                 return ResponseEntity.status(401).build();
             }
 
-            if (request.getState() == null || stateCookie == null || !request.getState().equals(stateCookie)) {
+            // Validate state (cookie is optional for cross-origin; sessionStorage validated client-side)
+            if (request.getState() == null || request.getState().isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (stateCookie != null && !request.getState().equals(stateCookie)) {
+                log.warn("State cookie mismatch for Trello linking");
                 return ResponseEntity.badRequest().build();
             }
 
