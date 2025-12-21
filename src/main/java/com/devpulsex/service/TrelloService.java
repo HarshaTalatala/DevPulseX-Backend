@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.devpulsex.dto.task.TaskDto;
@@ -13,7 +14,10 @@ import com.devpulsex.exception.TrelloApiException;
 import com.devpulsex.integration.trello.TrelloClient;
 import com.devpulsex.model.Project;
 import com.devpulsex.model.TaskStatus;
+import com.devpulsex.integration.trello.TrelloTokenEncryptor;
+import com.devpulsex.model.User;
 import com.devpulsex.repository.ProjectRepository;
+import com.devpulsex.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 
 @Service
@@ -21,22 +25,30 @@ public class TrelloService {
 
     private final TrelloClient trelloClient;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
+    private final TrelloTokenEncryptor tokenEncryptor;
 
-    public TrelloService(TrelloClient trelloClient, ProjectRepository projectRepository) {
+    public TrelloService(TrelloClient trelloClient, ProjectRepository projectRepository,
+                         UserRepository userRepository, TrelloTokenEncryptor tokenEncryptor) {
         this.trelloClient = trelloClient;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+        this.tokenEncryptor = tokenEncryptor;
     }
 
-    public JsonNode getUserBoards(String trelloUserId) {
-        try { return trelloClient.getBoards(trelloUserId); }
+    public JsonNode getUserBoards(Authentication authentication) {
+        String token = requireUserToken(authentication);
+        try { return trelloClient.getBoards(token); }
         catch (Exception e) { throw new TrelloApiException("Failed to fetch Trello boards", e); }
     }
-    public JsonNode getBoardLists(String boardId) {
-        try { return trelloClient.getLists(boardId); }
+    public JsonNode getBoardLists(String boardId, Authentication authentication) {
+        String token = requireUserToken(authentication);
+        try { return trelloClient.getLists(boardId, token); }
         catch (Exception e) { throw new TrelloApiException("Failed to fetch Trello lists", e); }
     }
-    public JsonNode getListCards(String listId) {
-        try { return trelloClient.getCards(listId); }
+    public JsonNode getListCards(String listId, Authentication authentication) {
+        String token = requireUserToken(authentication);
+        try { return trelloClient.getCards(listId, token); }
         catch (Exception e) { throw new TrelloApiException("Failed to fetch Trello cards", e); }
     }
 
@@ -73,14 +85,14 @@ public class TrelloService {
         return TaskStatus.TODO;
     }
 
-    public Map<String, Object> buildBoardAggregate(String boardId) {
-        JsonNode lists = getBoardLists(boardId);
+    public Map<String, Object> buildBoardAggregate(String boardId, Authentication authentication) {
+        JsonNode lists = getBoardLists(boardId, authentication);
         List<Map<String, Object>> listAgg = new ArrayList<>();
         if (lists != null && lists.isArray()) {
             for (JsonNode l : lists) {
                 String listId = l.path("id").asText();
                 String listName = l.path("name").asText();
-                JsonNode cards = getListCards(listId);
+                JsonNode cards = getListCards(listId, authentication);
                 List<Map<String, Object>> cardViews = new ArrayList<>();
                 if (cards != null && cards.isArray()) {
                     for (JsonNode c : cards) {
@@ -119,12 +131,25 @@ public class TrelloService {
         return root;
     }
 
-    public Map<String, Object> getTrelloDashboardForProject(Long projectId) {
+    public Map<String, Object> getTrelloDashboardForProject(Long projectId, Authentication authentication) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
         if (project.getTrelloBoardId() == null || project.getTrelloBoardId().isBlank()) {
             throw new IllegalArgumentException("Project has no trelloBoardId configured");
         }
-        return buildBoardAggregate(project.getTrelloBoardId());
+        return buildBoardAggregate(project.getTrelloBoardId(), authentication);
+    }
+
+    private String requireUserToken(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("Authentication required for Trello calls");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+        if (user.getTrelloAccessToken() == null || user.getTrelloAccessToken().isBlank()) {
+            throw new IllegalStateException("User has no linked Trello token");
+        }
+        return tokenEncryptor.decrypt(user.getTrelloAccessToken());
     }
 }

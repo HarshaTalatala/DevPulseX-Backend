@@ -3,15 +3,14 @@
 Configure Trello in `src/main/resources/application.properties` (or env vars):
 
 ```
-trello.api.key=${TRELLO_KEY:YOUR_TRELLO_KEY}
-trello.api.token=${TRELLO_TOKEN:YOUR_TRELLO_TOKEN}
+trello.api.key=${TRELLO_KEY}
 trello.api.base-url=https://api.trello.com/1
 trello.rate.limit.requests=295
 trello.rate.limit.window-seconds=10
 ```
 
 Endpoints (all under `/api`):
-- `GET /trello/boards/{userId}`: boards for Trello member
+- `GET /trello/boards`: boards for the authenticated Trello-linked user
 - `GET /trello/boards/{boardId}/lists`: lists on a board
 - `GET /trello/lists/{listId}/cards`: cards in a list
 - `GET /dashboard/trello/{projectId}`: aggregated board view by project’s `trelloBoardId`

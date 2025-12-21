@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -13,7 +12,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import com.devpulsex.dto.trello.TrelloMemberProfile;
 import com.devpulsex.dto.trello.TrelloTokenResponse;
 
-@Service
+// Deprecated: OAuth 1.0a flow is no longer used. Keeping class for reference only; not a Spring bean.
+@Deprecated
 public class TrelloOAuthService {
     
     private static final Logger log = LoggerFactory.getLogger(TrelloOAuthService.class);

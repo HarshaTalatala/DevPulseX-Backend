@@ -33,8 +33,6 @@ public class TrelloClient {
     private String baseUrl;
     @Value("${trello.api.key}")
     private String apiKey;
-    @Value("${trello.api.token}")
-    private String apiToken;
 
     @Value("${trello.rate.limit.requests}")
     private int softLimitRequests;
@@ -49,9 +47,26 @@ public class TrelloClient {
         this.objectMapper = new ObjectMapper();
     }
 
-    public JsonNode getBoards(String memberId) { return performGet("/members/" + memberId + "/boards"); }
-    public JsonNode getLists(String boardId) { return performGet("/boards/" + boardId + "/lists"); }
-    public JsonNode getCards(String listId) { return performGet("/lists/" + listId + "/cards"); }
+    public JsonNode getBoards(String token) { return performGetJson("/members/me/boards", token); }
+    public JsonNode getLists(String boardId, String token) { return performGetJson("/boards/" + boardId + "/lists", token); }
+    public JsonNode getCards(String listId, String token) { return performGetJson("/lists/" + listId + "/cards", token); }
+
+    public JsonNode getMemberProfile(String token) { return performGetJson("/members/me", token); }
+
+    public void revokeToken(String token) {
+        applySoftWindowLimit();
+        String url = buildUrl("/tokens/" + token, token);
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        try {
+            restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+        } catch (RestClientException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("404")) {
+                return; // Already revoked or invalid
+            }
+            throw ex;
+        }
+    }
 
     private void sleepForRetry(long millis) {
         try {
@@ -89,12 +104,9 @@ public class TrelloClient {
         return 0;
     }
 
-    private JsonNode performGet(String path) {
+    private JsonNode performGetJson(String path, String token) {
         applySoftWindowLimit();
-        String url = UriComponentsBuilder.fromUriString(baseUrl + path)
-                .queryParam("key", apiKey)
-                .queryParam("token", apiToken)
-                .build().toUriString();
+        String url = buildUrl(path, token);
 
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<Void> entity = new HttpEntity<>(headers);
@@ -117,6 +129,13 @@ public class TrelloClient {
             }
         }
         throw new RestClientException("Failed to call Trello API after retries: " + url);
+    }
+
+    private String buildUrl(String path, String token) {
+        return UriComponentsBuilder.fromUriString(baseUrl + path)
+                .queryParam("key", apiKey)
+                .queryParam("token", token)
+                .build().toUriString();
     }
 
     private void handleRateLimitHeaders(HttpHeaders headers) {

@@ -13,4 +13,7 @@ import lombok.NoArgsConstructor;
 public class TrelloAuthRequest {
     @NotBlank(message = "Token is required")
     private String token;
+
+    @NotBlank(message = "State is required")
+    private String state;
 }

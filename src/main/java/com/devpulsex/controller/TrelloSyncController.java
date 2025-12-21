@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -33,20 +34,20 @@ public class TrelloSyncController {
     @PostMapping("/project/{projectId}/sync-tasks")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Sync Trello cards into DevPulseX tasks (admin/manager only)")
-    public Map<String, Object> syncTasks(@PathVariable Long projectId) {
+    public Map<String, Object> syncTasks(@PathVariable Long projectId, Authentication authentication) {
         Project project = projectRepository.findById(projectId).orElseThrow();
         String boardId = project.getTrelloBoardId();
         if (boardId == null || boardId.isBlank()) {
             throw new IllegalArgumentException("Project has no trelloBoardId configured");
         }
-        JsonNode lists = trelloService.getBoardLists(boardId);
+        JsonNode lists = trelloService.getBoardLists(boardId, authentication);
         int created = 0; int updated = 0; int ignored = 0;
         if (lists != null && lists.isArray()) {
             for (JsonNode l : lists) {
                 String listId = l.path("id").asText();
                 String listName = l.path("name").asText();
                 TaskStatus inferred = trelloService.mapListNameToStatus(listName);
-                JsonNode cards = trelloService.getListCards(listId);
+                JsonNode cards = trelloService.getListCards(listId, authentication);
                 if (cards != null && cards.isArray()) {
                     for (JsonNode c : cards) {
                         TaskDto dto = TaskDto.builder()

@@ -248,21 +248,21 @@ public class DashboardService {
     }
 
     // Trello aggregation for a board id. Returns { lists: [ { listId, listName, cards: [...] } ] }
-    public Map<String, Object> getTrelloDashboardForBoard(String boardId) {
+    public Map<String, Object> getTrelloDashboardForBoard(String boardId, org.springframework.security.core.Authentication authentication) {
         if (boardId == null || boardId.isBlank()) {
             throw new IllegalArgumentException("boardId must not be blank");
         }
-        return trelloService.buildBoardAggregate(boardId);
+        return trelloService.buildBoardAggregate(boardId, authentication);
     }
 
     // Convenience by project id (pull boardId from project)
-    public Map<String, Object> getTrelloDashboardForProject(Long projectId) {
+    public Map<String, Object> getTrelloDashboardForProject(Long projectId, org.springframework.security.core.Authentication authentication) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
         String boardId = project.getTrelloBoardId();
         if (boardId == null || boardId.isBlank()) {
             throw new IllegalArgumentException("Project does not have a trelloBoardId configured");
         }
-        return trelloService.buildBoardAggregate(boardId);
+        return trelloService.buildBoardAggregate(boardId, authentication);
     }
 }

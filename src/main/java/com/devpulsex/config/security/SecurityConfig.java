@@ -1,6 +1,8 @@
 package com.devpulsex.config.security;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,7 +74,14 @@ public class SecurityConfig {
         // Get allowed origins from environment variable, fallback to localhost for development
         String allowedOrigins = System.getenv().getOrDefault("CORS_ALLOWED_ORIGINS", 
             "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173");
-        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+        if (origins.isEmpty() || origins.stream().anyMatch("*"::equals)) {
+            throw new IllegalStateException("CORS_ALLOWED_ORIGINS must list explicit origins and cannot be '*' or empty");
+        }
+        config.setAllowedOrigins(origins);
         
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
