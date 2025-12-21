@@ -32,13 +32,12 @@ ENV PORT=8080
 # Copy built JAR
 COPY --from=builder /app/target/*.jar /app/app.jar
 
-# Expose container port (Cloud Run injects $PORT)
+# Expose container port
 EXPOSE 8080
 
-# JVM Optimizations for Cloud Run
+# JVM optimizations for container runtime
 # - Lower memory footprint
 # - Faster startup
-# - Respect Cloud Run CPU throttling
 ENTRYPOINT ["sh", "-c", "java \
   -XX:+UseContainerSupport \
   -XX:MaxRAMPercentage=70.0 \

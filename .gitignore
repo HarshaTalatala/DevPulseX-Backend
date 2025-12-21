@@ -5,4 +5,8 @@
 .env.local
 .env.*.local
 
+# Ignore Maven build outputs and class files
+target/
+**/*.class
+
 application.properties
