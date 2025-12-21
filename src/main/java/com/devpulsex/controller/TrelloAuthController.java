@@ -21,6 +21,7 @@ import com.devpulsex.repository.UserRepository;
 import com.devpulsex.integration.trello.TrelloClient;
 import com.devpulsex.integration.trello.TrelloTokenEncryptor;
 import com.devpulsex.service.UserService;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -77,10 +78,20 @@ public class TrelloAuthController {
             log.info("Trello account linking attempt for user: {}", userEmail);
 
             // Fetch Trello member profile
-            TrelloMemberProfile profile = toProfile(trelloClient.getMemberProfile(request.getToken()));
+            log.debug("Calling trelloClient.getMemberProfile with token: {}...", request.getToken().substring(0, Math.min(10, request.getToken().length())));
+            JsonNode profileNode = null;
+            try {
+                profileNode = trelloClient.getMemberProfile(request.getToken());
+                log.debug("getMemberProfile returned: {}", profileNode);
+            } catch (Exception ex) {
+                log.error("getMemberProfile failed: {}", ex.getMessage(), ex);
+                throw ex;
+            }
+            
+            TrelloMemberProfile profile = toProfile(profileNode);
             
             if (profile == null || profile.getId() == null) {
-                log.error("Failed to fetch Trello profile");
+                log.error("Failed to fetch Trello profile or profile is null/missing ID. Profile: {}", profile);
                 return ResponseEntity.badRequest().build();
             }
 
@@ -110,7 +121,11 @@ public class TrelloAuthController {
                     .build());
 
         } catch (Exception e) {
-            log.error("Trello account linking failed: {}", e.getMessage(), e);
+            log.error("Trello account linking failed: {} | Cause: {} | Stack: ", 
+                    e.getMessage(), 
+                    e.getCause() != null ? e.getCause().getMessage() : "N/A", 
+                    e);
+            // Return 500 with error message for debugging
             return ResponseEntity.status(500).body(AuthResponse.builder()
                     .token(null)
                     .user(null)
