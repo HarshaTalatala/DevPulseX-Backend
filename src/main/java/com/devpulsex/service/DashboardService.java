@@ -65,7 +65,7 @@ public class DashboardService {
     public List<ProjectMetricsDto> getAllProjectMetrics() {
         List<Project> projects = projectRepository.findAll();
         if (projects.isEmpty()) {
-            throw new ResourceNotFoundException("No projects found");
+            return new ArrayList<>(); // Return empty list instead of throwing exception
         }
 
         // Preload enums for iteration
@@ -159,7 +159,7 @@ public class DashboardService {
     public List<UserMetricsDto> getAllUserMetrics() {
         List<User> users = userRepository.findAll();
         if (users.isEmpty()) {
-            throw new ResourceNotFoundException("No users found");
+            return new ArrayList<>(); // Return empty list instead of throwing exception
         }
         TaskStatus[] taskStatuses = TaskStatus.values();
         IssueStatus[] issueStatuses = IssueStatus.values();
