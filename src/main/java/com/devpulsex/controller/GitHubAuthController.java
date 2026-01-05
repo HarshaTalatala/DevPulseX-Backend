@@ -55,6 +55,7 @@ public class GitHubAuthController {
 
     @PostMapping("/github")
     @Operation(summary = "Exchange GitHub code for JWT and user info")
+    @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> githubLogin(@Valid @RequestBody GitHubAuthRequest request) {
         try {
             log.info("Received GitHub OAuth request: {}", request);

@@ -36,8 +36,7 @@ public class CacheConfig {
      * @return Configured CacheManager
      */
     @Bean
-    @Primary
-    public CacheManager cacheManager() {
+    @Primary    @SuppressWarnings("null")    public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(
             "githubInsights",
             "githubRepositories", 

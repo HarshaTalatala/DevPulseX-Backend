@@ -101,6 +101,7 @@ public class ResilientGitHubService {
      * @param username GitHub username (cache key)
      * @return Optional containing cached insights
      */
+    @SuppressWarnings("null")
     private Optional<GithubInsightsResponse> getCachedInsights(String username) {
         try {
             Cache cache = cacheManager.getCache("githubInsights");

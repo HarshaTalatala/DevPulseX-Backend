@@ -32,6 +32,7 @@ public class TaskService {
 
     public List<TaskDto> getAll() { return taskRepository.findAll().stream().map(this::toDto).toList(); }
 
+    @SuppressWarnings("null")
     public TaskDto getById(Long id) {
         return taskRepository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
@@ -43,18 +44,21 @@ public class TaskService {
         return toDto(taskRepository.save(task));
     }
 
+    @SuppressWarnings("null")
     public TaskDto update(Long id, TaskDto dto) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
         apply(dto, task);
         return toDto(taskRepository.save(task));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!taskRepository.existsById(id)) throw new ResourceNotFoundException("Task not found: " + id);
         taskRepository.deleteById(id);
     }
 
     // Business logic: assign a task to a user
+    @SuppressWarnings("null")
     public TaskDto assign(Long taskId, Long userId) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
@@ -63,6 +67,7 @@ public class TaskService {
     }
 
     // Business logic: transition task status
+    @SuppressWarnings("null")
     public TaskDto transitionStatus(Long taskId, TaskStatus newStatus) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
         TaskStatus current = task.getStatus();
@@ -84,6 +89,7 @@ public class TaskService {
         return toDto(saved);
     }
 
+    @SuppressWarnings("null")
     private void apply(TaskDto dto, Task task) {
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());

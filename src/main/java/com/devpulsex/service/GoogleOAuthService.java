@@ -35,6 +35,7 @@ public class GoogleOAuthService {
         this.webClient = WebClient.builder().build();
     }
 
+    @SuppressWarnings("null")
     public GoogleTokenResponse exchangeCodeForToken(String code) {
         try {
             return webClient.post()

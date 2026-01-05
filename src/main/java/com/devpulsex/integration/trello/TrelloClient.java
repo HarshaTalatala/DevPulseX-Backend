@@ -53,6 +53,7 @@ public class TrelloClient {
 
     public JsonNode getMemberProfile(String token) { return performGetJson("/members/me", token); }
 
+    @SuppressWarnings("null")
     public void revokeToken(String token) {
         applySoftWindowLimit();
         String url = buildUrl("/tokens/" + token, token);
@@ -104,6 +105,7 @@ public class TrelloClient {
         return 0;
     }
 
+    @SuppressWarnings("null")
     private JsonNode performGetJson(String path, String token) {
         applySoftWindowLimit();
         String url = buildUrl(path, token);

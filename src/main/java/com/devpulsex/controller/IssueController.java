@@ -37,6 +37,7 @@ public class IssueController {
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER') or hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Create an issue")
+    @SuppressWarnings("null")
     public ResponseEntity<IssueDto> create(@Valid @RequestBody IssueDto dto) {
         IssueDto created = issueService.create(dto);
         log.info("Created issue {} for project {}", created.getId(), created.getProjectId());

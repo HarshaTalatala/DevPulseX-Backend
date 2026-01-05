@@ -25,11 +25,13 @@ public class ProjectService {
         return projectRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    @SuppressWarnings("null")
     public ProjectDto getById(Long id) {
         return projectRepository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
     }
 
+    @SuppressWarnings("null")
     public ProjectDto create(ProjectDto dto) {
         Team team = teamRepository.findById(dto.getTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + dto.getTeamId()));
@@ -37,6 +39,7 @@ public class ProjectService {
         return toDto(projectRepository.save(p));
     }
 
+    @SuppressWarnings("null")
     public ProjectDto update(Long id, ProjectDto dto) {
         Project p = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
@@ -51,6 +54,7 @@ public class ProjectService {
         return toDto(projectRepository.save(p));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!projectRepository.existsById(id)) {
             throw new ResourceNotFoundException("Project not found: " + id);

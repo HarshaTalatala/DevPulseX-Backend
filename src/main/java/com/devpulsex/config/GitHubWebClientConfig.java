@@ -28,6 +28,7 @@ public class GitHubWebClientConfig {
      * @return Configured WebClient
      */
     @Bean(name = "githubWebClient")
+    @SuppressWarnings("null")
     public WebClient githubWebClient() {
         return WebClient.builder()
                 .filter(rateLimitFilter())
@@ -108,6 +109,7 @@ public class GitHubWebClientConfig {
     /**
      * Parse integer header safely.
      */
+    @SuppressWarnings("null")
     private int parseIntHeader(ClientResponse response, String headerName, int defaultValue) {
         try {
             String value = response.headers().asHttpHeaders().getFirst(headerName);
@@ -120,6 +122,7 @@ public class GitHubWebClientConfig {
     /**
      * Parse long header safely.
      */
+    @SuppressWarnings("null")
     private long parseLongHeader(ClientResponse response, String headerName, long defaultValue) {
         try {
             String value = response.headers().asHttpHeaders().getFirst(headerName);

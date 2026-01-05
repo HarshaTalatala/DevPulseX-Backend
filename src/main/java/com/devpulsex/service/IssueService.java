@@ -31,6 +31,7 @@ public class IssueService {
 
     public List<IssueDto> getAll() { return issueRepository.findAll().stream().map(this::toDto).toList(); }
 
+    @SuppressWarnings("null")
     public IssueDto getById(Long id) { return issueRepository.findById(id).map(this::toDto).orElseThrow(() -> new ResourceNotFoundException("Issue not found: " + id)); }
 
     public IssueDto create(IssueDto dto) {
@@ -39,18 +40,21 @@ public class IssueService {
         return toDto(issueRepository.save(i));
     }
 
+    @SuppressWarnings("null")
     public IssueDto update(Long id, IssueDto dto) {
         Issue i = issueRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Issue not found: " + id));
         apply(dto, i);
         return toDto(issueRepository.save(i));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!issueRepository.existsById(id)) throw new ResourceNotFoundException("Issue not found: " + id);
         issueRepository.deleteById(id);
     }
 
     // New: transition issue status following allowed lifecycle
+    @SuppressWarnings("null")
     public IssueDto transitionStatus(Long id, IssueStatus newStatus) {
         Issue issue = issueRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Issue not found: " + id));
         IssueStatus current = issue.getStatus();
@@ -73,6 +77,7 @@ public class IssueService {
         return toDto(saved);
     }
 
+    @SuppressWarnings("null")
     private void apply(IssueDto dto, Issue i) {
         Project project = projectRepository.findById(dto.getProjectId()).orElseThrow(() -> new ResourceNotFoundException("Project not found: " + dto.getProjectId()));
         User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getUserId()));

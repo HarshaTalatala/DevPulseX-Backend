@@ -53,6 +53,7 @@ public class GoogleAuthController {
         this.userService = userService;
     }    @PostMapping("/google")
     @Operation(summary = "Exchange Google code for JWT and user info")
+    @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
         try {
             log.info("Received Google OAuth request: {}", request);

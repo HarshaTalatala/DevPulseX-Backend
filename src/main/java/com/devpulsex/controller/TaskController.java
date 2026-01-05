@@ -39,6 +39,7 @@ public class TaskController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Create a task")
+    @SuppressWarnings("null")
     public ResponseEntity<TaskDto> create(@Valid @RequestBody TaskDto dto) {
         TaskDto created = taskService.create(dto);
         log.info("Created task {} for project {}", created.getId(), created.getProjectId());

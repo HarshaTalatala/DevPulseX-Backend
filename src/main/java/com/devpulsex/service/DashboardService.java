@@ -62,6 +62,7 @@ public class DashboardService {
         this.trelloService = trelloService;
     }
 
+    @SuppressWarnings("null")
     public List<ProjectMetricsDto> getAllProjectMetrics() {
         List<Project> projects = projectRepository.findAll();
         if (projects.isEmpty()) {
@@ -141,6 +142,7 @@ public class DashboardService {
         return result;
     }
 
+    @SuppressWarnings("null")
     private Map<LocalDate, Long> bucketCommitsOverTime(Long projectId, Instant from, Instant to) {
         List<Commit> commits = commitRepository.findByProject_IdAndTimestampBetween(projectId, from, to);
         Map<LocalDate, Long> buckets = new LinkedHashMap<>();
@@ -195,6 +197,7 @@ public class DashboardService {
         return result;
     }
 
+    @SuppressWarnings("null")
     public DashboardDto getDashboardSummary() {
         List<ProjectMetricsDto> projectMetrics = getAllProjectMetrics();
         List<UserMetricsDto> userMetrics = getAllUserMetrics();
@@ -256,6 +259,7 @@ public class DashboardService {
     }
 
     // Convenience by project id (pull boardId from project)
+    @SuppressWarnings("null")
     public Map<String, Object> getTrelloDashboardForProject(Long projectId, org.springframework.security.core.Authentication authentication) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));

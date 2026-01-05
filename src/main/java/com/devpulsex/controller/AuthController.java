@@ -52,6 +52,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user and return JWT token")
+    @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().build();

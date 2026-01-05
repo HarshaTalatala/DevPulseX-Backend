@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthIntegrationTest extends BaseIntegrationTest {
 
     @Test
+    @SuppressWarnings("null")
     void registerAndLogin_shouldReturnJwtAndUser() throws Exception {
         String email = "admin@example.com";
         String password = "Admin@123";

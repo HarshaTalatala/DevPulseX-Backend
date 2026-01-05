@@ -36,6 +36,7 @@ public class CommitController {
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER') or hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Create a commit")
+    @SuppressWarnings("null")
     public ResponseEntity<CommitDto> create(@Valid @RequestBody CommitDto dto) {
         CommitDto created = commitService.create(dto);
         log.info("Created commit {} in project {} by user {}", created.getId(), created.getProjectId(), created.getUserId());

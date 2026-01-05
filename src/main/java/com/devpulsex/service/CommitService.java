@@ -28,6 +28,7 @@ public class CommitService {
 
     public List<CommitDto> getAll() { return commitRepository.findAll().stream().map(this::toDto).toList(); }
 
+    @SuppressWarnings("null")
     public CommitDto getById(Long id) {
         return commitRepository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Commit not found: " + id));
@@ -40,17 +41,20 @@ public class CommitService {
         return toDto(commitRepository.save(c));
     }
 
+    @SuppressWarnings("null")
     public CommitDto update(Long id, CommitDto dto) {
         Commit c = commitRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Commit not found: " + id));
         apply(dto, c);
         return toDto(commitRepository.save(c));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!commitRepository.existsById(id)) throw new ResourceNotFoundException("Commit not found: " + id);
         commitRepository.deleteById(id);
     }
 
+    @SuppressWarnings("null")
     private void apply(CommitDto dto, Commit c) {
         Project project = projectRepository.findById(dto.getProjectId()).orElseThrow(() -> new ResourceNotFoundException("Project not found: " + dto.getProjectId()));
         User user = userRepository.findById(dto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getUserId()));

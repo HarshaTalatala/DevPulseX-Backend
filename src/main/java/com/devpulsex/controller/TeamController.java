@@ -41,6 +41,7 @@ public class TeamController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Create a team")
+    @SuppressWarnings("null")
     public ResponseEntity<TeamDto> create(@Valid @RequestBody TeamDto dto) {
         TeamDto created = teamService.create(dto);
         log.info("Created team {}", created.getId());

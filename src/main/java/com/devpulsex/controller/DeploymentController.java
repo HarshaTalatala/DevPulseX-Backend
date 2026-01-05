@@ -37,6 +37,7 @@ public class DeploymentController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Create a deployment")
+    @SuppressWarnings("null")
     public ResponseEntity<DeploymentDto> create(@Valid @RequestBody DeploymentDto dto) {
         DeploymentDto created = deploymentService.create(dto);
         log.info("Created deployment {} for project {}", created.getId(), created.getProjectId());

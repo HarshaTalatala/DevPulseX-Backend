@@ -28,6 +28,7 @@ public class DeploymentService {
 
     public List<DeploymentDto> getAll() { return deploymentRepository.findAll().stream().map(this::toDto).toList(); }
 
+    @SuppressWarnings("null")
     public DeploymentDto getById(Long id) { return deploymentRepository.findById(id).map(this::toDto).orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id)); }
 
     public DeploymentDto create(DeploymentDto dto) {
@@ -37,18 +38,21 @@ public class DeploymentService {
         return toDto(deploymentRepository.save(d));
     }
 
+    @SuppressWarnings("null")
     public DeploymentDto update(Long id, DeploymentDto dto) {
         Deployment d = deploymentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id));
         apply(dto, d);
         return toDto(deploymentRepository.save(d));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!deploymentRepository.existsById(id)) throw new ResourceNotFoundException("Deployment not found: " + id);
         deploymentRepository.deleteById(id);
     }
 
     // New: enforce deployment status transitions with logging
+    @SuppressWarnings("null")
     public DeploymentDto transitionStatus(Long id, DeploymentStatus newStatus) {
         Deployment d = deploymentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id));
         DeploymentStatus current = d.getStatus();
@@ -72,6 +76,7 @@ public class DeploymentService {
         return toDto(saved);
     }
 
+    @SuppressWarnings("null")
     private void apply(DeploymentDto dto, Deployment d) {
         Project project = projectRepository.findById(dto.getProjectId()).orElseThrow(() -> new ResourceNotFoundException("Project not found: " + dto.getProjectId()));
         d.setProject(project);

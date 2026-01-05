@@ -38,6 +38,7 @@ public class ProjectController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Create a project")
+    @SuppressWarnings("null")
     public ResponseEntity<ProjectDto> create(@Valid @RequestBody ProjectDto dto) {
         ProjectDto created = projectService.create(dto);
         log.info("Created project {} under team {}", created.getId(), created.getTeamId());

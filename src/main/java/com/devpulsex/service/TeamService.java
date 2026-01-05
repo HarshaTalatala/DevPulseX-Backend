@@ -27,6 +27,7 @@ public class TeamService {
         return teamRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    @SuppressWarnings("null")
     public TeamDto getById(Long id) {
         return teamRepository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + id));
@@ -39,6 +40,7 @@ public class TeamService {
         return toDto(teamRepository.save(team));
     }
 
+    @SuppressWarnings("null")
     public TeamDto update(Long id, TeamDto dto) {
         Team team = teamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + id));
@@ -47,6 +49,7 @@ public class TeamService {
         return toDto(teamRepository.save(team));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!teamRepository.existsById(id)) {
             throw new ResourceNotFoundException("Team not found: " + id);

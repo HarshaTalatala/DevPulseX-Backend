@@ -34,6 +34,7 @@ public class TrelloSyncController {
     @PostMapping("/project/{projectId}/sync-tasks")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Sync Trello cards into DevPulseX tasks (admin/manager only)")
+    @SuppressWarnings("null")
     public Map<String, Object> syncTasks(@PathVariable Long projectId, Authentication authentication) {
         Project project = projectRepository.findById(projectId).orElseThrow();
         String boardId = project.getTrelloBoardId();

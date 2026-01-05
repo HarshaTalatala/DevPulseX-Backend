@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class TestUtils {
 
+    @SuppressWarnings("null")
     public static String registerAndLoginAdmin(MockMvc mockMvc, String email) throws Exception {
         String password = "Admin@123";
         // Register

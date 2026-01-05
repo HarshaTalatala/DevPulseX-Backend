@@ -27,6 +27,7 @@ public class UserService {
         return userRepository.findAll().stream().map(this::toDto).toList();
     }
 
+    @SuppressWarnings("null")
     public UserDto getById(Long id) {
         return userRepository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -38,6 +39,7 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
+    @SuppressWarnings("null")
     public UserDto create(CreateUserRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
@@ -51,6 +53,7 @@ public class UserService {
         return toDto(userRepository.save(user));
     }
 
+    @SuppressWarnings("null")
     public UserDto update(Long id, UpdateUserRequest req) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -63,6 +66,7 @@ public class UserService {
         return toDto(userRepository.save(user));
     }
 
+    @SuppressWarnings("null")
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found: " + id);

@@ -36,6 +36,7 @@ public class GitHubOAuthService {
         this.webClient = WebClient.builder().build();
     }
 
+    @SuppressWarnings("null")
     public GitHubTokenResponse exchangeCodeForToken(String code) {
         try {
             return webClient.post()

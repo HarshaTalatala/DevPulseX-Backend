@@ -40,6 +40,7 @@ public class TrelloOAuthService {
      * @param oauthVerifier The OAuth verifier from the callback
      * @return Access token string
      */
+    @SuppressWarnings("null")
     public String exchangeCodeForToken(String oauthToken, String oauthVerifier) {
         try {
             log.info("Exchanging Trello OAuth token for access token");

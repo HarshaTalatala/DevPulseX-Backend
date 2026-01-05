@@ -131,6 +131,7 @@ public class TrelloService {
         return root;
     }
 
+    @SuppressWarnings("null")
     public Map<String, Object> getTrelloDashboardForProject(Long projectId, Authentication authentication) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
