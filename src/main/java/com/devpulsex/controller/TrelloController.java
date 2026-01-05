@@ -1,5 +1,7 @@
 package com.devpulsex.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Trello", description = "Trello integration endpoints")
 public class TrelloController {
 
+    private static final Logger log = LoggerFactory.getLogger(TrelloController.class);
+
     private final TrelloService trelloService;
 
     public TrelloController(TrelloService trelloService) {
@@ -27,6 +31,7 @@ public class TrelloController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get Trello boards for user")
     public Object getBoards(Authentication authentication) {
+        log.info("GET /api/trello/boards - Fetching boards for user: {}", authentication.getName());
         return trelloService.getUserBoards(authentication);
     }
 

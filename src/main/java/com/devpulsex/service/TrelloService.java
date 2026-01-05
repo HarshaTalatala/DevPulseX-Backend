@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Service
 public class TrelloService {
 
+    private static final Logger log = LoggerFactory.getLogger(TrelloService.class);
+
     private final TrelloClient trelloClient;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -38,8 +42,16 @@ public class TrelloService {
 
     public JsonNode getUserBoards(Authentication authentication) {
         String token = requireUserToken(authentication);
-        try { return trelloClient.getBoards(token); }
-        catch (Exception e) { throw new TrelloApiException("Failed to fetch Trello boards", e); }
+        try {
+            log.info("Fetching Trello boards for user");
+            JsonNode boards = trelloClient.getBoards(token);
+            log.info("Successfully fetched {} boards", boards.size());
+            return boards;
+        }
+        catch (Exception e) {
+            log.error("Failed to fetch Trello boards", e);
+            throw new TrelloApiException("Failed to fetch Trello boards", e);
+        }
     }
     public JsonNode getBoardLists(String boardId, Authentication authentication) {
         String token = requireUserToken(authentication);
@@ -143,14 +155,22 @@ public class TrelloService {
 
     private String requireUserToken(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
+            log.warn("Authentication required for Trello calls");
             throw new IllegalArgumentException("Authentication required for Trello calls");
         }
         String email = authentication.getName();
+        log.debug("Looking up Trello token for user: {}", email);
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+                .orElseThrow(() -> {
+                    log.error("User not found: {}", email);
+                    return new ResourceNotFoundException("User not found: " + email);
+                });
         if (user.getTrelloAccessToken() == null || user.getTrelloAccessToken().isBlank()) {
+            log.warn("User {} has no linked Trello token", email);
             throw new IllegalStateException("User has no linked Trello token");
         }
-        return tokenEncryptor.decrypt(user.getTrelloAccessToken());
+        String decrypted = tokenEncryptor.decrypt(user.getTrelloAccessToken());
+        log.debug("Successfully decrypted Trello token for user: {}", email);
+        return decrypted;
     }
 }
