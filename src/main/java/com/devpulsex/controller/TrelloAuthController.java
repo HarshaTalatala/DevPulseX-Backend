@@ -102,18 +102,18 @@ public class TrelloAuthController {
             if (profile != null && profile.getId() != null) {
                 user.setTrelloId(profile.getId());
                 user.setTrelloUsername(profile.getUsername());
-                log.info("Linked Trello with profile: id={}, username={}", profile.getId(), profile.getUsername());
+                log.info("Successfully linked Trello account with profile: id={}, username={}", profile.getId(), profile.getUsername());
             } else {
                 // Fallback: generate pseudo IDs from token hash if profile fetch failed
                 String tokenHash = Integer.toHexString(request.getToken().hashCode());
                 user.setTrelloId("token_" + tokenHash);
                 user.setTrelloUsername("trello_user_" + tokenHash);
-                log.info("Profile fetch failed; using token-based IDs for Trello account");
+                log.warn("Profile fetch failed; using token-based IDs for Trello account. Trello API may be unreachable from backend. User will still be able to access boards if token is valid.");
             }
             
             user.setTrelloAccessToken(tokenEncryptor.encrypt(request.getToken()));
             
-            log.info("Linking Trello account to user: email={}, trelloId={}, trelloUsername={}", 
+            log.info("Saving Trello account link to user: email={}, trelloId={}, trelloUsername={}", 
                     userEmail, user.getTrelloId(), user.getTrelloUsername());
 
             userRepository.save(user);
