@@ -32,6 +32,12 @@
 @SET __MVNW_ERROR__=
 @SET __MVNW_PSMODULEP_SAVE=%PSModulePath%
 @SET PSModulePath=
+@IF "%JAVA_HOME%"=="" (
+  IF EXIST "%USERPROFILE%\.jdk\jdk-25\bin\java.exe" (
+    SET "JAVA_HOME=%USERPROFILE%\.jdk\jdk-25"
+    SET "PATH=%JAVA_HOME%\bin;%PATH%"
+  )
+)
 @FOR /F "usebackq tokens=1* delims==" %%A IN (`powershell -noprofile "& {$scriptDir='%~dp0'; $script='%__MVNW_ARG0_NAME__%'; icm -ScriptBlock ([Scriptblock]::Create((Get-Content -Raw '%~f0'))) -NoNewScope}"`) DO @(
   IF "%%A"=="MVN_CMD" (set __MVNW_CMD__=%%B) ELSE IF "%%B"=="" (echo %%A) ELSE (echo %%A=%%B)
 )
@@ -48,6 +54,13 @@
 $ErrorActionPreference = "Stop"
 if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
+}
+
+# Prefer user-local JDK 25 when JAVA_HOME is not set.
+$localJdk25 = Join-Path $HOME ".jdk/jdk-25"
+if (-not $env:JAVA_HOME -and (Test-Path (Join-Path $localJdk25 "bin/java.exe"))) {
+  $env:JAVA_HOME = $localJdk25
+  $env:Path = "$($env:JAVA_HOME)\bin;$($env:Path)"
 }
 
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties

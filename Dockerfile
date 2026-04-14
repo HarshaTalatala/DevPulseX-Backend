@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 
 ############################################
-# 1. BUILD STAGE (Maven + JDK 21)
+# 1. BUILD STAGE (Maven + JDK 25)
 ############################################
-FROM maven:3.9-eclipse-temurin-21 AS builder
+FROM maven:3.9-eclipse-temurin-25 AS builder
 
 WORKDIR /app
 
@@ -19,9 +19,9 @@ RUN mvn -q -DskipTests clean package
 
 
 ############################################
-# 2. RUNTIME STAGE (Slim JRE 21)
+# 2. RUNTIME STAGE (Slim JRE 25)
 ############################################
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
 

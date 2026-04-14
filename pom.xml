@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+        <version>3.5.12</version>
         <relativePath/>
     </parent>
     <groupId>com.DevPulseX</groupId>
@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -133,10 +133,31 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[25,26)</version>
+                                    <message>This project requires JDK 25. Please switch IntelliJ Project SDK/Module SDK/Maven JVM to Java 25.</message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <configuration>
-                    <release>21</release>
+                    <release>25</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

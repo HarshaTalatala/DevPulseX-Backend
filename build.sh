@@ -5,6 +5,13 @@
 
 echo "🚀 Starting DevPulseX Backend build..."
 
+# Prefer local JDK 25 when JAVA_HOME is not explicitly set
+if [ -z "${JAVA_HOME}" ] && [ -d "${HOME}/.jdk/jdk-25" ]; then
+    export JAVA_HOME="${HOME}/.jdk/jdk-25"
+    export PATH="${JAVA_HOME}/bin:${PATH}"
+    echo "☕ Using JAVA_HOME=${JAVA_HOME}"
+fi
+
 # Make Maven wrapper executable
 chmod +x mvnw
 
