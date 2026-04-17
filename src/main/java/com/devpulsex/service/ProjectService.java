@@ -15,26 +15,35 @@ import com.devpulsex.repository.TeamRepository;
 public class ProjectService {
     private final ProjectRepository projectRepository;
     private final TeamRepository teamRepository;
+    private final AuthorizationScopeService authorizationScopeService;
 
-    public ProjectService(ProjectRepository projectRepository, TeamRepository teamRepository) {
+    public ProjectService(ProjectRepository projectRepository, TeamRepository teamRepository,
+            AuthorizationScopeService authorizationScopeService) {
         this.projectRepository = projectRepository;
         this.teamRepository = teamRepository;
+        this.authorizationScopeService = authorizationScopeService;
     }
 
     public List<ProjectDto> getAll() {
-        return projectRepository.findAll().stream().map(this::toDto).toList();
+        return projectRepository.findAll().stream()
+                .filter(authorizationScopeService::hasProjectAccess)
+                .map(this::toDto)
+                .toList();
     }
 
     @SuppressWarnings("null")
     public ProjectDto getById(Long id) {
-        return projectRepository.findById(id).map(this::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
+        Project project = projectRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
+        authorizationScopeService.requireProjectAccess(project);
+        return toDto(project);
     }
 
     @SuppressWarnings("null")
     public ProjectDto create(ProjectDto dto) {
         Team team = teamRepository.findById(dto.getTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + dto.getTeamId()));
+        authorizationScopeService.requireTeamAccess(team);
         Project p = Project.builder().name(dto.getName()).team(team).trelloBoardId(dto.getTrelloBoardId()).build();
         return toDto(projectRepository.save(p));
     }
@@ -43,10 +52,12 @@ public class ProjectService {
     public ProjectDto update(Long id, ProjectDto dto) {
         Project p = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
+        authorizationScopeService.requireProjectAccess(p);
         p.setName(dto.getName());
         if (dto.getTeamId() != null) {
             Team team = teamRepository.findById(dto.getTeamId())
                     .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + dto.getTeamId()));
+            authorizationScopeService.requireTeamAccess(team);
             p.setTeam(team);
         }
         // Allow updating / clearing trelloBoardId
@@ -56,10 +67,10 @@ public class ProjectService {
 
     @SuppressWarnings("null")
     public void delete(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Project not found: " + id);
-        }
-        projectRepository.deleteById(id);
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
+        authorizationScopeService.requireProjectAccess(project);
+        projectRepository.delete(project);
     }
 
     private ProjectDto toDto(Project p) {

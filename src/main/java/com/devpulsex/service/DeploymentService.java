@@ -20,16 +20,29 @@ public class DeploymentService {
 
     private final DeploymentRepository deploymentRepository;
     private final ProjectRepository projectRepository;
+    private final AuthorizationScopeService authorizationScopeService;
 
-    public DeploymentService(DeploymentRepository deploymentRepository, ProjectRepository projectRepository) {
+    public DeploymentService(DeploymentRepository deploymentRepository, ProjectRepository projectRepository,
+            AuthorizationScopeService authorizationScopeService) {
         this.deploymentRepository = deploymentRepository;
         this.projectRepository = projectRepository;
+        this.authorizationScopeService = authorizationScopeService;
     }
 
-    public List<DeploymentDto> getAll() { return deploymentRepository.findAll().stream().map(this::toDto).toList(); }
+    public List<DeploymentDto> getAll() {
+        return deploymentRepository.findAll().stream()
+                .filter(deployment -> deployment.getProject() != null && authorizationScopeService.hasProjectAccess(deployment.getProject()))
+                .map(this::toDto)
+                .toList();
+    }
 
     @SuppressWarnings("null")
-    public DeploymentDto getById(Long id) { return deploymentRepository.findById(id).map(this::toDto).orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id)); }
+    public DeploymentDto getById(Long id) {
+        Deployment deployment = deploymentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id));
+        authorizationScopeService.requireProjectAccess(deployment.getProject());
+        return toDto(deployment);
+    }
 
     public DeploymentDto create(DeploymentDto dto) {
         Deployment d = new Deployment();
@@ -41,20 +54,24 @@ public class DeploymentService {
     @SuppressWarnings("null")
     public DeploymentDto update(Long id, DeploymentDto dto) {
         Deployment d = deploymentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id));
+        authorizationScopeService.requireProjectAccess(d.getProject());
         apply(dto, d);
         return toDto(deploymentRepository.save(d));
     }
 
     @SuppressWarnings("null")
     public void delete(Long id) {
-        if (!deploymentRepository.existsById(id)) throw new ResourceNotFoundException("Deployment not found: " + id);
-        deploymentRepository.deleteById(id);
+        Deployment deployment = deploymentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id));
+        authorizationScopeService.requireProjectAccess(deployment.getProject());
+        deploymentRepository.delete(deployment);
     }
 
     // New: enforce deployment status transitions with logging
     @SuppressWarnings("null")
     public DeploymentDto transitionStatus(Long id, DeploymentStatus newStatus) {
         Deployment d = deploymentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Deployment not found: " + id));
+        authorizationScopeService.requireProjectAccess(d.getProject());
         DeploymentStatus current = d.getStatus();
         if (current == newStatus) {
             log.debug("Deployment {} already in status {}", id, newStatus);
@@ -79,6 +96,7 @@ public class DeploymentService {
     @SuppressWarnings("null")
     private void apply(DeploymentDto dto, Deployment d) {
         Project project = projectRepository.findById(dto.getProjectId()).orElseThrow(() -> new ResourceNotFoundException("Project not found: " + dto.getProjectId()));
+        authorizationScopeService.requireProjectAccess(project);
         d.setProject(project);
         d.setStatus(dto.getStatus());
         d.setTimestamp(dto.getTimestamp() == null ? Instant.now() : dto.getTimestamp());

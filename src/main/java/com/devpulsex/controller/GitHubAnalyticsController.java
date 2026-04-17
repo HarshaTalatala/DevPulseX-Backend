@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.devpulsex.dto.github.GithubInsightsResponse;
+import com.devpulsex.integration.oauth.OAuthTokenEncryptor;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
 import com.devpulsex.service.ResilientGitHubService;
@@ -32,10 +33,14 @@ public class GitHubAnalyticsController {
 
     private final ResilientGitHubService resilientGitHubService;
     private final UserRepository userRepository;
+    private final OAuthTokenEncryptor tokenEncryptor;
 
-    public GitHubAnalyticsController(ResilientGitHubService resilientGitHubService, UserRepository userRepository) {
+    public GitHubAnalyticsController(ResilientGitHubService resilientGitHubService,
+                                     UserRepository userRepository,
+                                     OAuthTokenEncryptor tokenEncryptor) {
         this.resilientGitHubService = resilientGitHubService;
         this.userRepository = userRepository;
+        this.tokenEncryptor = tokenEncryptor;
     }
 
     @GetMapping("/insights")
@@ -64,10 +69,16 @@ public class GitHubAnalyticsController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
+            String githubToken = tokenEncryptor.decryptLenient(user.getGithubAccessToken());
+            if (githubToken == null || githubToken.isBlank()) {
+                log.warn("User {} has invalid GitHub token state", userEmail);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
             // Use resilient service with automatic cache fallback
             GithubInsightsResponse insights = resilientGitHubService.fetchInsightsWithFallback(
                     user.getGithubUsername(),
-                    user.getGithubAccessToken()
+                    githubToken
             );
             
             // Add avatar URL from user profile
@@ -114,8 +125,14 @@ public class GitHubAnalyticsController {
                         .body("GitHub not connected. Please connect your GitHub account.");
             }
 
+            String githubToken = tokenEncryptor.decryptLenient(user.getGithubAccessToken());
+            if (githubToken == null || githubToken.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("GitHub token is unavailable. Please reconnect your GitHub account.");
+            }
+
             // Use resilient service with automatic cache fallback
-            var repos = resilientGitHubService.fetchRepositoriesWithFallback(user.getGithubAccessToken());
+            var repos = resilientGitHubService.fetchRepositoriesWithFallback(githubToken);
             
             if (repos == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

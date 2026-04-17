@@ -2,6 +2,9 @@ package com.devpulsex.service;
 
 import java.util.List;
 
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,6 +63,11 @@ public class UserService {
         if (!user.getEmail().equalsIgnoreCase(req.getEmail()) && userRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
         }
+
+        if (user.getRole() != req.getRole() && !currentUserIsAdmin()) {
+            throw new AccessDeniedException("Only admins can change roles");
+        }
+
         user.setName(req.getName());
         user.setEmail(req.getEmail());
         user.setRole(req.getRole());
@@ -95,5 +103,13 @@ public class UserService {
                 .trelloId(u.getTrelloId())
                 .trelloUsername(u.getTrelloUsername())
                 .build();
+    }
+
+    private boolean currentUserIsAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities() == null) return false;
+
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }
