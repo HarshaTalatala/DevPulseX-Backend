@@ -6,8 +6,11 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +31,8 @@ import com.devpulsex.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -60,17 +65,30 @@ public class GitHubAuthController {
     @PostMapping("/github")
     @Operation(summary = "Exchange GitHub code for JWT and user info")
     @SuppressWarnings("null")
-    public ResponseEntity<AuthResponse> githubLogin(@Valid @RequestBody GitHubAuthRequest request) {
+    public ResponseEntity<AuthResponse> githubLogin(
+            @Valid @RequestBody GitHubAuthRequest request,
+            @CookieValue(value = "oauth_state_github", required = false) String expectedState,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
         try {
             log.info("GitHub OAuth login attempt");
+
+            if (expectedState == null || expectedState.isBlank() || !expectedState.equals(request.getState())) {
+                log.warn("GitHub OAuth state validation failed");
+                clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
+                return ResponseEntity.badRequest().build();
+            }
+
             GitHubTokenResponse tokenResp = oAuthService.exchangeCodeForToken(request.getCode());
             if (tokenResp == null || tokenResp.getAccessToken() == null) {
                 log.warn("GitHub token exchange returned null or no access token");
+                clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
                 return ResponseEntity.badRequest().build();
             }
             GitHubUserProfile profile = oAuthService.fetchUserProfile(tokenResp.getAccessToken());
             if (profile == null || profile.getId() == null) {
                 log.warn("GitHub user profile fetch returned null or missing ID");
+                clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
                 return ResponseEntity.badRequest().build();
             }
             log.info("GitHub user profile retrieved: id={}, login={}", profile.getId(), profile.getLogin());
@@ -116,6 +134,7 @@ public class GitHubAuthController {
             userRepository.save(user);
 
             String jwt = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
+            clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
             return ResponseEntity.ok(AuthResponse.builder()
                     .token(jwt)
                     .user(userService.toDto(user))
@@ -123,8 +142,23 @@ public class GitHubAuthController {
         } catch (Exception ex) {
             log.error("GitHub OAuth login failed", ex);
             // Avoid leaking secrets; provide a generic response
+            clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
             return ResponseEntity.status(502).build();
         }
+    }
+
+        private void clearOauthStateCookie(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull String cookieName) {
+        ResponseCookie cookie = ResponseCookie.from(cookieName, "")
+                .httpOnly(true)
+                .secure(request.isSecure())
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     private String randomPassword() {

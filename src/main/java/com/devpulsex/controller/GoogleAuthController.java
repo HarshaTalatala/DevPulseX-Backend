@@ -6,8 +6,11 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +31,8 @@ import com.devpulsex.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -58,14 +63,25 @@ public class GoogleAuthController {
     }    @PostMapping("/google")
     @Operation(summary = "Exchange Google code for JWT and user info")
     @SuppressWarnings("null")
-    public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
+    public ResponseEntity<AuthResponse> googleLogin(
+            @Valid @RequestBody GoogleAuthRequest request,
+            @CookieValue(value = "oauth_state_google", required = false) String expectedState,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
         try {
             log.info("Google OAuth login attempt");
+
+            if (expectedState == null || expectedState.isBlank() || !expectedState.equals(request.getState())) {
+                log.warn("Google OAuth state validation failed");
+                clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
+                return ResponseEntity.badRequest().build();
+            }
             
             // Exchange code for access token
             GoogleTokenResponse tokenResp = oAuthService.exchangeCodeForToken(request.getCode());
             if (tokenResp == null || tokenResp.getAccessToken() == null) {
                 log.warn("Google token exchange returned null or no access token");
+                clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
                 return ResponseEntity.badRequest().build();
             }
             
@@ -73,6 +89,7 @@ public class GoogleAuthController {
             GoogleUserProfile profile = oAuthService.fetchUserProfile(tokenResp.getAccessToken());
             if (profile == null || profile.getId() == null) {
                 log.warn("Google user profile fetch returned null or missing ID");
+                clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
                 return ResponseEntity.badRequest().build();
             }
             
@@ -122,6 +139,7 @@ public class GoogleAuthController {
 
             // Generate JWT token
             String jwt = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
+            clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
             
             return ResponseEntity.ok(AuthResponse.builder()
                     .token(jwt)
@@ -129,8 +147,23 @@ public class GoogleAuthController {
                     .build());
         } catch (Exception ex) {
             log.error("Google OAuth login failed", ex);
+            clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
             return ResponseEntity.status(502).build();
         }
+    }
+
+        private void clearOauthStateCookie(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull String cookieName) {
+        ResponseCookie cookie = ResponseCookie.from(cookieName, "")
+                .httpOnly(true)
+                .secure(request.isSecure())
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     private String randomPassword() {

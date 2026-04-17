@@ -49,11 +49,11 @@ public class GoogleOAuthService {
                             .with("grant_type", "authorization_code"))
                     .retrieve()
                     .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("Google token error: " + body)))
+                            .map(body -> new RuntimeException("Google token exchange failed")))
                     .bodyToMono(GoogleTokenResponse.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("Google token exchange failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
+            log.error("Google token exchange failed: status={}", e.getStatusCode().value());
             return null;
         } catch (Exception e) {
             log.error("Google token exchange unexpected error", e);
@@ -69,11 +69,11 @@ public class GoogleOAuthService {
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .retrieve()
                     .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("Google user error: " + body)))
+                            .map(body -> new RuntimeException("Google user profile request failed")))
                     .bodyToMono(GoogleUserProfile.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("Google user profile failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
+            log.error("Google user profile failed: status={}", e.getStatusCode().value());
             return null;
         } catch (Exception e) {
             log.error("Google user profile unexpected error", e);

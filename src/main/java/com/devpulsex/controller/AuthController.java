@@ -1,13 +1,16 @@
 package com.devpulsex.controller;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.devpulsex.config.security.JwtUtil;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.auth.LoginRequest;
+import com.devpulsex.dto.auth.OAuthStatePrepareRequest;
 import com.devpulsex.dto.auth.RegisterRequest;
 import com.devpulsex.model.Role;
 import com.devpulsex.model.User;
@@ -25,11 +29,15 @@ import com.devpulsex.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Auth", description = "Register and login using JWT tokens")
 public class AuthController {
+
+    private static final Set<String> SUPPORTED_OAUTH_PROVIDERS = Set.of("github", "google");
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
@@ -91,5 +99,34 @@ public class AuthController {
                 .token(token)
                 .user(userService.toDto(user))
                 .build());
+    }
+
+    @PostMapping("/oauth/state/{provider}")
+    @Operation(summary = "Prepare OAuth state for provider")
+    public ResponseEntity<Map<String, String>> prepareOAuthState(
+            @PathVariable String provider,
+            @Valid @RequestBody OAuthStatePrepareRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        String normalizedProvider = provider == null ? "" : provider.trim().toLowerCase();
+        if (!SUPPORTED_OAUTH_PROVIDERS.contains(normalizedProvider)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String state = request.getState() == null ? "" : request.getState().trim();
+        if (state.length() < 24 || state.length() > 256) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        ResponseCookie stateCookie = ResponseCookie.from("oauth_state_" + normalizedProvider, state)
+                .httpOnly(true)
+                .secure(httpRequest.isSecure())
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(300)
+                .build();
+        httpResponse.addHeader("Set-Cookie", stateCookie.toString());
+
+        return ResponseEntity.ok(Map.of("state", state));
     }
 }

@@ -32,13 +32,16 @@ import com.devpulsex.repository.UserRepository;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final DemoModeMutationBlockFilter demoModeMutationBlockFilter;
     private final UserRepository userRepository;
     private final String corsAllowedOrigins;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+            DemoModeMutationBlockFilter demoModeMutationBlockFilter,
             UserRepository userRepository,
             @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173}") String corsAllowedOrigins) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.demoModeMutationBlockFilter = demoModeMutationBlockFilter;
         this.userRepository = userRepository;
         this.corsAllowedOrigins = corsAllowedOrigins;
     }
@@ -86,7 +89,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(origins);
         
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "X-Demo-Mode"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 
@@ -112,6 +115,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(demoModeMutationBlockFilter, JwtAuthFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

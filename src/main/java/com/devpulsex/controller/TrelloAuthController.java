@@ -80,15 +80,11 @@ public class TrelloAuthController {
 
             // Fetch Trello member profile (with retry logic)
             TrelloMemberProfile profile = null;
-            String tokenMasked = request.getToken().substring(0, Math.min(10, request.getToken().length())) + "...";
-            
-            log.info("Attempting to fetch Trello profile with token: {}", tokenMasked);
             try {
                 JsonNode profileNode = trelloClient.getMemberProfile(request.getToken());
-                log.debug("getMemberProfile returned: {}", profileNode);
                 profile = toProfile(profileNode);
             } catch (Exception ex) {
-                log.warn("Failed to fetch Trello profile from API: {} | Will proceed with token-only linking", ex.getMessage());
+                log.warn("Failed to fetch Trello profile from API. Proceeding with token-only linking.");
                 // Don't fail - we can link without fetching profile if API is unreachable
                 // This is important for production where backend may not have direct Trello API access
                 profile = null;
@@ -130,11 +126,7 @@ public class TrelloAuthController {
                     .build());
 
         } catch (Exception e) {
-            log.error("Trello account linking failed: {} | Cause: {} | Exception type: {}", 
-                    e.getMessage(), 
-                    e.getCause() != null ? e.getCause().getMessage() : "N/A",
-                    e.getClass().getSimpleName(),
-                    e);
+            log.error("Trello account linking failed", e);
             return ResponseEntity.status(500).body(AuthResponse.builder()
                     .token(null)
                     .user(null)

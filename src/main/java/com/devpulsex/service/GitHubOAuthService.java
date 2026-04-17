@@ -48,12 +48,12 @@ public class GitHubOAuthService {
                             .with("code", code)
                             .with("redirect_uri", redirectUri))
             .retrieve()
-            .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("GitHub token error: " + body)))
+                .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
+                        .map(body -> new RuntimeException("GitHub token exchange failed")))
                     .bodyToMono(GitHubTokenResponse.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("GitHub token exchange failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
+            log.error("GitHub token exchange failed: status={}", e.getStatusCode().value());
             return null;
         } catch (Exception e) {
             log.error("GitHub token exchange unexpected error", e);
@@ -68,12 +68,12 @@ public class GitHubOAuthService {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
             .retrieve()
-            .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("GitHub user error: " + body)))
+                .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
+                        .map(body -> new RuntimeException("GitHub user profile request failed")))
                     .bodyToMono(GitHubUserProfile.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("GitHub user profile failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
+            log.error("GitHub user profile failed: status={}", e.getStatusCode().value());
             return null;
         } catch (Exception e) {
             log.error("GitHub user profile unexpected error", e);
@@ -88,8 +88,8 @@ public class GitHubOAuthService {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
             .retrieve()
-            .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("GitHub emails error: " + body)))
+                .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
+                        .map(body -> new RuntimeException("GitHub email request failed")))
                     .bodyToMono(JsonNode.class)
                     .block();
             if (emails != null && emails.isArray()) {
@@ -108,7 +108,7 @@ public class GitHubOAuthService {
                 }
             }
         } catch (WebClientResponseException e) {
-            log.warn("GitHub email fetch failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
+            log.warn("GitHub email fetch failed: status={}", e.getStatusCode().value());
         } catch (Exception e) {
             log.warn("GitHub email fetch unexpected error", e);
         }

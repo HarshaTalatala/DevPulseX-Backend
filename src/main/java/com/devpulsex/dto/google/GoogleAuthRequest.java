@@ -13,4 +13,7 @@ import lombok.NoArgsConstructor;
 public class GoogleAuthRequest {
     @NotBlank(message = "Authorization code is required")
     private String code;
+
+    @NotBlank(message = "OAuth state is required")
+    private String state;
 }

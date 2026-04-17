@@ -57,7 +57,7 @@ public class TrelloOAuthService {
                     .with("oauth_verifier", oauthVerifier))
                     .retrieve()
                     .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("Trello token error: " + body)))
+                            .map(body -> new RuntimeException("Trello token exchange failed")))
                 .bodyToMono(String.class)
                     .block();
 
@@ -71,8 +71,8 @@ public class TrelloOAuthService {
             log.info("Successfully exchanged Trello token");
             return response.getToken();
         } catch (WebClientResponseException e) {
-            log.error("Trello token exchange failed: status={}, body={}", e.getStatusCode().value(), e.getResponseBodyAsString());
-            throw new RuntimeException("Failed to exchange Trello token: " + e.getMessage(), e);
+            log.error("Trello token exchange failed: status={}", e.getStatusCode().value());
+            throw new RuntimeException("Failed to exchange Trello token", e);
         } catch (RuntimeException e) {
             log.error("Trello token exchange unexpected error", e);
             throw e;
@@ -119,7 +119,7 @@ public class TrelloOAuthService {
                     .uri(url)
                     .retrieve()
                     .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                            .map(body -> new RuntimeException("Trello profile error: " + body)))
+                            .map(body -> new RuntimeException("Trello profile request failed")))
                     .bodyToMono(TrelloMemberProfile.class)
                     .block();
             
@@ -135,8 +135,8 @@ public class TrelloOAuthService {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error fetching Trello member profile: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch Trello member profile: " + e.getMessage(), e);
+            log.error("Error fetching Trello member profile", e);
+            throw new RuntimeException("Failed to fetch Trello member profile", e);
         }
     }
     
@@ -151,7 +151,7 @@ public class TrelloOAuthService {
             getMemberProfile(token);
             return true;
         } catch (Exception e) {
-            log.warn("Token validation failed: {}", e.getMessage());
+            log.warn("Token validation failed");
             return false;
         }
     }
