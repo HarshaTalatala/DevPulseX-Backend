@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -32,10 +33,14 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final UserRepository userRepository;
+    private final String corsAllowedOrigins;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserRepository userRepository) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+            UserRepository userRepository,
+            @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173}") String corsAllowedOrigins) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userRepository = userRepository;
+        this.corsAllowedOrigins = corsAllowedOrigins;
     }
 
     @Bean
@@ -70,11 +75,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        
-        // Get allowed origins from environment variable, fallback to localhost for development
-        String allowedOrigins = System.getenv().getOrDefault("CORS_ALLOWED_ORIGINS", 
-            "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173");
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+
+        List<String> origins = Arrays.stream(corsAllowedOrigins.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
