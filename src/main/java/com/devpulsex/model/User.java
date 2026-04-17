@@ -57,7 +57,7 @@ public class User {
     @Column(name = "github_avatar_url")
     private String githubAvatarUrl;
 
-    // Note: In production, encrypt or store securely (e.g., token table + KMS)
+    // Encrypted at rest via OAuthTokenEncryptor.
     @Column(name = "github_access_token", length = 2048)
     private String githubAccessToken;
 
@@ -74,7 +74,7 @@ public class User {
     @Column(name = "google_picture_url")
     private String googlePictureUrl;
 
-    // Note: In production, encrypt or store securely (e.g., token table + KMS)
+    // Encrypted at rest via OAuthTokenEncryptor.
     @Column(name = "google_access_token", length = 2048)
     private String googleAccessToken;
 

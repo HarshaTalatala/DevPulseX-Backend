@@ -18,6 +18,7 @@ import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.google.GoogleAuthRequest;
 import com.devpulsex.dto.google.GoogleTokenResponse;
 import com.devpulsex.dto.google.GoogleUserProfile;
+import com.devpulsex.integration.oauth.OAuthTokenEncryptor;
 import com.devpulsex.model.Role;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
@@ -40,17 +41,20 @@ public class GoogleAuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final OAuthTokenEncryptor tokenEncryptor;
 
     public GoogleAuthController(GoogleOAuthService oAuthService,
                                UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
                                JwtUtil jwtUtil,
-                               UserService userService) {
+                               UserService userService,
+                               OAuthTokenEncryptor tokenEncryptor) {
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.tokenEncryptor = tokenEncryptor;
     }    @PostMapping("/google")
     @Operation(summary = "Exchange Google code for JWT and user info")
     @SuppressWarnings("null")
@@ -96,8 +100,8 @@ public class GoogleAuthController {
                         .googleEmail(profile.getEmail())
                         .googleName(profile.getName())
                         .googlePictureUrl(profile.getPicture())
-                        .googleAccessToken(tokenResp.getAccessToken())
-                        .googleRefreshToken(tokenResp.getRefreshToken())
+                        .googleAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()))
+                        .googleRefreshToken(tokenEncryptor.encrypt(tokenResp.getRefreshToken()))
                         .build();
                 log.info("Created new user from Google OAuth: email={}", email);
             } else {
@@ -108,8 +112,8 @@ public class GoogleAuthController {
                 user.setGoogleEmail(profile.getEmail());
                 user.setGoogleName(profile.getName());
                 user.setGooglePictureUrl(profile.getPicture());
-                user.setGoogleAccessToken(tokenResp.getAccessToken());
-                user.setGoogleRefreshToken(tokenResp.getRefreshToken());
+                user.setGoogleAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()));
+                user.setGoogleRefreshToken(tokenEncryptor.encrypt(tokenResp.getRefreshToken()));
                 log.info("Linked Google account to existing user: email={}, hasGitHub={}", 
                     email, user.getGithubId() != null);
             }

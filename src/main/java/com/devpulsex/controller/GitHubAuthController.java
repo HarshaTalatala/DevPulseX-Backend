@@ -18,6 +18,7 @@ import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.github.GitHubAuthRequest;
 import com.devpulsex.dto.github.GitHubTokenResponse;
 import com.devpulsex.dto.github.GitHubUserProfile;
+import com.devpulsex.integration.oauth.OAuthTokenEncryptor;
 import com.devpulsex.model.Role;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
@@ -40,17 +41,20 @@ public class GitHubAuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final OAuthTokenEncryptor tokenEncryptor;
 
     public GitHubAuthController(GitHubOAuthService oAuthService,
                                 UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
                                 JwtUtil jwtUtil,
-                                UserService userService) {
+                                UserService userService,
+                                OAuthTokenEncryptor tokenEncryptor) {
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.tokenEncryptor = tokenEncryptor;
     }
 
     @PostMapping("/github")
@@ -94,7 +98,7 @@ public class GitHubAuthController {
                         .githubId(profile.getId())
                         .githubUsername(profile.getLogin())
                         .githubAvatarUrl(profile.getAvatarUrl())
-                        .githubAccessToken(tokenResp.getAccessToken())
+                        .githubAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()))
                         .build();
                 log.info("Created new user from GitHub OAuth: email={}", email);
             } else {
@@ -104,7 +108,7 @@ public class GitHubAuthController {
                 user.setGithubId(profile.getId());
                 user.setGithubUsername(profile.getLogin());
                 user.setGithubAvatarUrl(profile.getAvatarUrl());
-                user.setGithubAccessToken(tokenResp.getAccessToken());
+                user.setGithubAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()));
                 log.info("Linked GitHub account to existing user: email={}, hasGoogle={}", 
                     email, user.getGoogleId() != null);
             }

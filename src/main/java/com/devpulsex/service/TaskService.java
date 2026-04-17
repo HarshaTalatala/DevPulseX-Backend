@@ -11,6 +11,7 @@ import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.Project;
 import com.devpulsex.model.Task;
 import com.devpulsex.model.TaskStatus;
+import com.devpulsex.model.Team;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.ProjectRepository;
 import com.devpulsex.repository.TaskRepository;
@@ -23,19 +24,29 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final AuthorizationScopeService authorizationScopeService;
 
-    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, UserRepository userRepository) {
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository, UserRepository userRepository,
+            AuthorizationScopeService authorizationScopeService) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.authorizationScopeService = authorizationScopeService;
     }
 
-    public List<TaskDto> getAll() { return taskRepository.findAll().stream().map(this::toDto).toList(); }
+    public List<TaskDto> getAll() {
+        return taskRepository.findAll().stream()
+                .filter(task -> task.getProject() != null && authorizationScopeService.hasProjectAccess(task.getProject()))
+                .map(this::toDto)
+                .toList();
+    }
 
     @SuppressWarnings("null")
     public TaskDto getById(Long id) {
-        return taskRepository.findById(id).map(this::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+        Task task = taskRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+        authorizationScopeService.requireProjectAccess(task.getProject());
+        return toDto(task);
     }
 
     public TaskDto create(TaskDto dto) {
@@ -47,21 +58,25 @@ public class TaskService {
     @SuppressWarnings("null")
     public TaskDto update(Long id, TaskDto dto) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+        authorizationScopeService.requireProjectAccess(task.getProject());
         apply(dto, task);
         return toDto(taskRepository.save(task));
     }
 
     @SuppressWarnings("null")
     public void delete(Long id) {
-        if (!taskRepository.existsById(id)) throw new ResourceNotFoundException("Task not found: " + id);
-        taskRepository.deleteById(id);
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+        authorizationScopeService.requireProjectAccess(task.getProject());
+        taskRepository.delete(task);
     }
 
     // Business logic: assign a task to a user
     @SuppressWarnings("null")
     public TaskDto assign(Long taskId, Long userId) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
+        authorizationScopeService.requireProjectAccess(task.getProject());
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        validateUserInProjectTeam(task.getProject(), user);
         task.setAssignedUser(user);
         return toDto(taskRepository.save(task));
     }
@@ -70,6 +85,7 @@ public class TaskService {
     @SuppressWarnings("null")
     public TaskDto transitionStatus(Long taskId, TaskStatus newStatus) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));
+        authorizationScopeService.requireProjectAccess(task.getProject());
         TaskStatus current = task.getStatus();
         if (current == newStatus) {
             log.debug("Task {} already in status {}", taskId, newStatus);
@@ -97,13 +113,32 @@ public class TaskService {
         task.setDueDate(dto.getDueDate());
         if (dto.getProjectId() != null) {
             Project project = projectRepository.findById(dto.getProjectId()).orElseThrow(() -> new ResourceNotFoundException("Project not found: " + dto.getProjectId()));
+            authorizationScopeService.requireProjectAccess(project);
             task.setProject(project);
         }
         if (dto.getAssignedUserId() != null) {
             User user = userRepository.findById(dto.getAssignedUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getAssignedUserId()));
+            validateUserInProjectTeam(task.getProject(), user);
             task.setAssignedUser(user);
         } else {
             task.setAssignedUser(null);
+        }
+    }
+
+    private void validateUserInProjectTeam(Project project, User user) {
+        Team team = project == null ? null : project.getTeam();
+        if (team == null || user == null) {
+            throw new IllegalArgumentException("Task must belong to a valid project team");
+        }
+
+        User currentUser = authorizationScopeService.getCurrentUser();
+        if (authorizationScopeService.isAdmin(currentUser)) {
+            return;
+        }
+
+        boolean isMember = team.getMembers().stream().anyMatch(member -> member.getId().equals(user.getId()));
+        if (!isMember) {
+            throw new IllegalArgumentException("Assigned user must be a member of the project's team");
         }
     }
 
