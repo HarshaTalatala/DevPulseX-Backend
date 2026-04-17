@@ -23,6 +23,7 @@ public class TrelloOAuthService {
     private final String trelloApiSecret;
     private final String trelloBaseUrl;
     
+    @Deprecated
     public TrelloOAuthService(WebClient.Builder webClientBuilder,
                              @Value("${trello.api.key}") String trelloApiKey,
                              @Value("${trello.api.secret:}") String trelloApiSecret,
@@ -41,6 +42,7 @@ public class TrelloOAuthService {
      * @return Access token string
      */
     @SuppressWarnings("null")
+    @Deprecated
     public String exchangeCodeForToken(String oauthToken, String oauthVerifier) {
         try {
             log.info("Exchanging Trello OAuth token for access token");
@@ -106,6 +108,7 @@ public class TrelloOAuthService {
      * @param token User's Trello access token
      * @return TrelloMemberProfile with user details
      */
+    @Deprecated
     public TrelloMemberProfile getMemberProfile(String token) {
         try {
             String url = trelloBaseUrl + "/members/me?key=" + trelloApiKey + "&token=" + token;
@@ -142,6 +145,7 @@ public class TrelloOAuthService {
      * @param token User's Trello access token
      * @return true if valid, false otherwise
      */
+    @Deprecated
     public boolean validateToken(String token) {
         try {
             getMemberProfile(token);
