@@ -14,7 +14,7 @@ public class DevPulseXBackendApplication {
                     .load();
             dotenv.entries().forEach(e -> System.setProperty(e.getKey(), e.getValue()));
         } catch (io.github.cdimascio.dotenv.DotenvException e) {
-            System.err.println("Warning: Could not load .env file: " + e.getMessage());
+                System.err.println("Warning: Could not load .env file");
         }
         
         SpringApplication.run(DevPulseXBackendApplication.class, args);

@@ -67,16 +67,16 @@ public class TrelloAuthController {
 
             // Validate state (cookie is optional for cross-origin; sessionStorage validated client-side)
             if (request.getState() == null || request.getState().isBlank()) {
-                log.warn("State is missing or blank in Trello linking request");
+                log.warn("Trello linking state validation failed");
                 return ResponseEntity.badRequest().build();
             }
             if (stateCookie != null && !request.getState().equals(stateCookie)) {
-                log.warn("State cookie mismatch for Trello linking");
+                log.warn("Trello linking state validation failed");
                 return ResponseEntity.badRequest().build();
             }
 
             String userEmail = authentication.getName();
-            log.info("Trello account linking attempt for user: {}", userEmail);
+            log.info("Trello account linking attempt");
 
             // Fetch Trello member profile (with retry logic)
             TrelloMemberProfile profile = null;
@@ -84,7 +84,7 @@ public class TrelloAuthController {
                 JsonNode profileNode = trelloClient.getMemberProfile(request.getToken());
                 profile = toProfile(profileNode);
             } catch (Exception ex) {
-                log.warn("Failed to fetch Trello profile from API. Proceeding with token-only linking.");
+                log.warn("Trello profile fetch failed");
                 // Don't fail - we can link without fetching profile if API is unreachable
                 // This is important for production where backend may not have direct Trello API access
                 profile = null;
@@ -98,19 +98,18 @@ public class TrelloAuthController {
             if (profile != null && profile.getId() != null) {
                 user.setTrelloId(profile.getId());
                 user.setTrelloUsername(profile.getUsername());
-                log.info("Successfully linked Trello account with profile: id={}, username={}", profile.getId(), profile.getUsername());
+                log.info("Trello account linked");
             } else {
                 // Fallback: generate pseudo IDs from token hash if profile fetch failed
                 String tokenHash = Integer.toHexString(request.getToken().hashCode());
                 user.setTrelloId("token_" + tokenHash);
                 user.setTrelloUsername("trello_user_" + tokenHash);
-                log.warn("Profile fetch failed; using token-based IDs for Trello account. Trello API may be unreachable from backend. User will still be able to access boards if token is valid.");
+                log.warn("Trello account linked without profile data");
             }
             
             user.setTrelloAccessToken(tokenEncryptor.encrypt(request.getToken()));
             
-            log.info("Saving Trello account link to user: email={}, trelloId={}, trelloUsername={}", 
-                    userEmail, user.getTrelloId(), user.getTrelloUsername());
+            log.info("Trello account link saved");
 
             userRepository.save(user);
 
@@ -126,7 +125,7 @@ public class TrelloAuthController {
                     .build());
 
         } catch (Exception e) {
-            log.error("Trello account linking failed", e);
+            log.error("Trello account linking failed");
             return ResponseEntity.status(500).body(AuthResponse.builder()
                     .token(null)
                     .user(null)
@@ -150,7 +149,7 @@ public class TrelloAuthController {
                 String token = tokenEncryptor.decrypt(user.getTrelloAccessToken());
                 trelloClient.revokeToken(token);
             } catch (Exception ex) {
-                log.warn("Trello token revoke failed: {}", ex.getMessage());
+                log.warn("Trello token revoke failed");
             }
         }
 

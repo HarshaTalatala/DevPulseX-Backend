@@ -51,19 +51,18 @@ public class ResilientGitHubService {
             return gitHubService.fetchInsights(username, accessToken);
             
         } catch (GitHubRateLimitException e) {
-            log.warn("GitHub rate limit exceeded for user: {}. Remaining: {}, Reset at: {}", 
-                    username, e.getRemainingRequests(), e.getResetTimeEpoch());
+            log.warn("GitHub rate limit exceeded");
             
             // Fallback to cached data
             return getCachedInsights(username)
                     .orElseGet(() -> createEmptyInsights(username, "Rate limit exceeded"));
                     
         } catch (Exception e) {
-            log.error("Error fetching GitHub insights for user: {}. Attempting cache fallback.", username, e);
+            log.error("GitHub insights fallback engaged");
             
             // Fallback to cached data on any error
             return getCachedInsights(username)
-                    .orElseGet(() -> createEmptyInsights(username, "API error: " + e.getMessage()));
+                    .orElseGet(() -> createEmptyInsights(username, "API error"));
         }
     }
     
@@ -79,15 +78,14 @@ public class ResilientGitHubService {
             return gitHubService.fetchRepositories(accessToken);
             
         } catch (GitHubRateLimitException e) {
-            log.warn("GitHub rate limit exceeded when fetching repositories. Remaining: {}", 
-                    e.getRemainingRequests());
+            log.warn("GitHub repositories rate limit exceeded");
             
             // Fallback to cached data
             return getCachedRepositories(accessToken)
                     .orElse(null);
                     
         } catch (Exception e) {
-            log.error("Error fetching GitHub repositories. Attempting cache fallback.", e);
+            log.error("GitHub repositories fallback engaged");
             
             // Fallback to cached data
             return getCachedRepositories(accessToken)
@@ -109,12 +107,12 @@ public class ResilientGitHubService {
                 Cache.ValueWrapper wrapper = cache.get(username);
                 if (wrapper != null) {
                     GithubInsightsResponse cached = (GithubInsightsResponse) wrapper.get();
-                    log.info("Returning cached GitHub insights for user: {} (CACHE FALLBACK)", username);
+                    log.info("Returning cached GitHub insights");
                     return Optional.ofNullable(cached);
                 }
             }
         } catch (Exception e) {
-            log.error("Error retrieving cached insights for user: {}", username, e);
+            log.error("Cached GitHub insights retrieval failed");
         }
         
         return Optional.empty();
@@ -135,12 +133,12 @@ public class ResilientGitHubService {
                 Cache.ValueWrapper wrapper = cache.get(cacheKey);
                 if (wrapper != null) {
                     JsonNode cached = (JsonNode) wrapper.get();
-                    log.info("Returning cached GitHub repositories (CACHE FALLBACK)");
+                    log.info("Returning cached GitHub repositories");
                     return Optional.ofNullable(cached);
                 }
             }
         } catch (Exception e) {
-            log.error("Error retrieving cached repositories", e);
+            log.error("Cached GitHub repositories retrieval failed");
         }
         
         return Optional.empty();
@@ -154,7 +152,7 @@ public class ResilientGitHubService {
      * @return Empty insights response
      */
     private GithubInsightsResponse createEmptyInsights(String username, String reason) {
-        log.warn("Creating empty insights for user: {}. Reason: {}", username, reason);
+        log.warn("Creating empty GitHub insights response");
         
         return GithubInsightsResponse.builder()
                 .username(username)

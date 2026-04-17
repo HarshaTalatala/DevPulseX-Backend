@@ -56,7 +56,7 @@ public class GitHubWebClientConfig {
                             
                             // Check if it's a rate limit error
                             if (remaining == 0 || body.contains("rate limit exceeded")) {
-                                log.error("GitHub API rate limit exceeded. Reset at: {}", resetTime);
+                                log.error("GitHub API rate limit exceeded");
                                 
                                 return Mono.error(new GitHubRateLimitException(
                                         "GitHub API rate limit exceeded",
@@ -86,7 +86,7 @@ public class GitHubWebClientConfig {
     private ExchangeFilterFunction logRequest() {
         return ExchangeFilterFunction.ofRequestProcessor(request -> {
             if (log.isDebugEnabled()) {
-                log.debug("GitHub API Request: {} {}", request.method(), request.url());
+                log.debug("GitHub API request started");
             }
             return Mono.just(request);
         });
@@ -98,9 +98,7 @@ public class GitHubWebClientConfig {
     private ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(response -> {
             if (log.isDebugEnabled()) {
-                log.debug("GitHub API Response: {} - {}", 
-                        response.statusCode().value(),
-                        response.headers().asHttpHeaders().getFirst("X-RateLimit-Remaining"));
+                log.debug("GitHub API response received");
             }
             return Mono.just(response);
         });

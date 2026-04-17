@@ -48,7 +48,7 @@ public class UserController {
     @Operation(summary = "Create a new user")
     public ResponseEntity<UserDto> create(@Valid @RequestBody CreateUserRequest request) {
         UserDto created = userService.create(request);
-        log.info("Created user {} ({})", created.getId(), created.getEmail());
+        log.info("User creation succeeded");
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

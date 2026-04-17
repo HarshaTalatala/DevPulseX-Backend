@@ -43,41 +43,41 @@ public class TrelloService {
     public JsonNode getUserBoards(Authentication authentication) {
         String token = requireUserToken(authentication);
         try {
-            log.info("Fetching Trello boards for user: {}", authentication.getName());
+            log.info("Trello boards fetch started");
             JsonNode boards = trelloClient.getBoards(token);
-            log.info("Successfully fetched {} boards for user: {}", boards.size(), authentication.getName());
+            log.info("Trello boards fetch succeeded");
             return boards;
         }
         catch (Exception e) {
-            log.error("Failed to fetch Trello boards for user {}: {}", authentication.getName(), e.getMessage(), e);
-            throw new TrelloApiException("Failed to fetch Trello boards: " + e.getMessage(), e);
+            log.error("Trello boards fetch failed");
+            throw new TrelloApiException("External integration failed", e);
         }
     }
     public JsonNode getBoardLists(String boardId, Authentication authentication) {
         String token = requireUserToken(authentication);
         try {
-            log.info("Fetching lists for Trello board: {}", boardId);
+            log.info("Trello lists fetch started");
             JsonNode lists = trelloClient.getLists(boardId, token);
-            log.info("Successfully fetched {} lists from board: {}", lists.size(), boardId);
+            log.info("Trello lists fetch succeeded");
             return lists;
         }
         catch (Exception e) {
-            log.error("Failed to fetch Trello lists for board {}: {}", boardId, e.getMessage(), e);
-            throw new TrelloApiException("Failed to fetch Trello lists: " + e.getMessage(), e);
+            log.error("Trello lists fetch failed");
+            throw new TrelloApiException("External integration failed", e);
         }
     }
     
     public JsonNode getListCards(String listId, Authentication authentication) {
         String token = requireUserToken(authentication);
         try {
-            log.info("Fetching cards for Trello list: {}", listId);
+            log.info("Trello cards fetch started");
             JsonNode cards = trelloClient.getCards(listId, token);
-            log.info("Successfully fetched {} cards from list: {}", cards.size(), listId);
+            log.info("Trello cards fetch succeeded");
             return cards;
         }
         catch (Exception e) {
-            log.error("Failed to fetch Trello cards for list {}: {}", listId, e.getMessage(), e);
-            throw new TrelloApiException("Failed to fetch Trello cards: " + e.getMessage(), e);
+            log.error("Trello cards fetch failed");
+            throw new TrelloApiException("External integration failed", e);
         }
     }
 
@@ -171,28 +171,26 @@ public class TrelloService {
 
     private String requireUserToken(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            log.warn("Authentication required but not authenticated for Trello calls");
+            log.warn("Trello authentication required");
             throw new IllegalArgumentException("Authentication required for Trello calls");
         }
         String email = authentication.getName();
-        log.debug("Retrieving Trello token for user: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.error("User not found for email: {}", email);
-                    return new ResourceNotFoundException("User not found: " + email);
+                    log.error("Trello user lookup failed");
+                    return new ResourceNotFoundException("User not found");
                 });
         if (user.getTrelloAccessToken() == null || user.getTrelloAccessToken().isBlank()) {
-            log.warn("User {} has no linked Trello token. trelloId={}, trelloUsername={}", 
-                    email, user.getTrelloId(), user.getTrelloUsername());
-            throw new IllegalStateException("User has no linked Trello token!");
+            log.warn("Trello token missing for user");
+            throw new IllegalStateException("Authentication failed");
         }
         try {
             String decrypted = tokenEncryptor.decrypt(user.getTrelloAccessToken());
-            log.debug("Successfully decrypted Trello token for user: {}", email);
+            log.info("Trello token decrypted");
             return decrypted;
         } catch (Exception e) {
-            log.error("Failed to decrypt Trello token for user {}: {}", email, e.getMessage(), e);
-            throw new IllegalStateException("Failed to decrypt Trello token: " + e.getMessage(), e);
+            log.error("Trello token decrypt failed");
+            throw new IllegalStateException("Authentication failed", e);
         }
     }
 }

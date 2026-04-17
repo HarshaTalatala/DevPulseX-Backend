@@ -53,10 +53,10 @@ public class GoogleOAuthService {
                     .bodyToMono(GoogleTokenResponse.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("Google token exchange failed: status={}", e.getStatusCode().value());
+            log.error("Google token exchange failed");
             return null;
         } catch (Exception e) {
-            log.error("Google token exchange unexpected error", e);
+            log.error("Google token exchange failed");
             return null;
         }
     }
@@ -73,10 +73,10 @@ public class GoogleOAuthService {
                     .bodyToMono(GoogleUserProfile.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("Google user profile failed: status={}", e.getStatusCode().value());
+            log.error("Google user profile fetch failed");
             return null;
         } catch (Exception e) {
-            log.error("Google user profile unexpected error", e);
+            log.error("Google user profile fetch failed");
             return null;
         }
     }

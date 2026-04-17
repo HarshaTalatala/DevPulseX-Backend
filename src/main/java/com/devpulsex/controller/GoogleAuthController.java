@@ -93,7 +93,7 @@ public class GoogleAuthController {
                 return ResponseEntity.badRequest().build();
             }
             
-            log.info("Google user profile retrieved: id={}, email={}", profile.getId(), profile.getEmail());
+            log.info("Google user profile retrieved");
 
             String email = profile.getEmail();
             String name = (profile.getName() != null && !profile.getName().isBlank()) 
@@ -120,7 +120,7 @@ public class GoogleAuthController {
                         .googleAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()))
                         .googleRefreshToken(tokenEncryptor.encrypt(tokenResp.getRefreshToken()))
                         .build();
-                log.info("Created new user from Google OAuth: email={}", email);
+                log.info("Google OAuth user created");
             } else {
                 // Update existing user with Google OAuth data (account linking by email)
                 user.setName(name);
@@ -131,8 +131,7 @@ public class GoogleAuthController {
                 user.setGooglePictureUrl(profile.getPicture());
                 user.setGoogleAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()));
                 user.setGoogleRefreshToken(tokenEncryptor.encrypt(tokenResp.getRefreshToken()));
-                log.info("Linked Google account to existing user: email={}, hasGitHub={}", 
-                    email, user.getGithubId() != null);
+                log.info("Google OAuth account linked");
             }
 
             userRepository.save(user);
@@ -146,7 +145,7 @@ public class GoogleAuthController {
                     .user(userService.toDto(user))
                     .build());
         } catch (Exception ex) {
-            log.error("Google OAuth login failed", ex);
+            log.error("Google OAuth login failed");
             clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
             return ResponseEntity.status(502).build();
         }

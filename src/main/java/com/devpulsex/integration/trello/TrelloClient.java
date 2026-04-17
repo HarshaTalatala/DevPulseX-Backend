@@ -80,7 +80,7 @@ public class TrelloClient {
     private void applySoftWindowLimit() {
         long sleepMs = calculateSleepTime();
         if (sleepMs > 0) {
-            log.debug("Soft window limit reached; sleeping {} ms", sleepMs);
+            log.info("Trello API rate limit pause");
             try {
                 Thread.sleep(sleepMs);
             } catch (InterruptedException ie) {
@@ -121,27 +121,27 @@ public class TrelloClient {
                 return objectMapper.readTree(response.getBody());
             } catch (RestClientException ex) {
                 String errorMsg = ex.getMessage() != null ? ex.getMessage() : "Unknown error";
-                log.error("[TrelloClient] Request failed for path={}, attempt={}, error={}", path, attempt, errorMsg);
+                log.error("Trello API request failed");
                 
                 if (errorMsg.contains("429") && attempt < 3) {
-                    log.warn("Trello 429 encountered; backing off (attempt {})", attempt);
+                    log.warn("Trello API rate limited");
                     sleepForRetry(1500L * attempt);
                     continue;
                 }
                 
                 // For 401/403, don't retry - token is likely invalid
                 if (errorMsg.contains("401") || errorMsg.contains("403")) {
-                    log.error("[TrelloClient] Authentication error (401/403) - token may be invalid or expired for path={}", path);
+                    log.error("Trello API authentication failed");
                     throw new RestClientException("Trello authentication failed. Please re-link your account.", ex);
                 }
                 
                 throw ex;
             } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                log.error("[TrelloClient] Failed to parse Trello JSON response for path={}", path, e);
+                log.error("Trello API response parsing failed");
                 throw new RestClientException("Failed to parse Trello response", e);
             }
         }
-        throw new RestClientException("Failed to call Trello API after retries: " + url);
+        throw new RestClientException("Trello API request failed");
     }
 
     private String buildUrl(String path, String token) {

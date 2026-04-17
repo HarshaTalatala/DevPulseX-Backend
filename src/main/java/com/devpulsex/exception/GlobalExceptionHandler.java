@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
                 .timestamp(Instant.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(ex.getMessage())
+                                .message("Resource not found")
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
                 .timestamp(Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(ex.getMessage())
+                                .message("Bad request")
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.badRequest().body(error);
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
                                 .timestamp(Instant.now())
                                 .status(HttpStatus.FORBIDDEN.value())
                                 .error(HttpStatus.FORBIDDEN.getReasonPhrase())
-                                .message(ex.getMessage())
+                                .message("Forbidden")
                                 .path(request.getRequestURI())
                                 .build();
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
@@ -90,7 +90,7 @@ public class GlobalExceptionHandler {
                 .timestamp(Instant.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message(ex.getMessage())
+                                .message("Internal server error")
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
                                 .timestamp(Instant.now())
                                 .status(HttpStatus.BAD_GATEWAY.value())
                                 .error("Trello API Error")
-                                .message(ex.getMessage())
+                                .message("External integration failed")
                                 .path(request.getRequestURI())
                                 .build();
                 return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);

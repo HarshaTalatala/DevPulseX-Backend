@@ -91,7 +91,7 @@ public class GitHubAuthController {
                 clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
                 return ResponseEntity.badRequest().build();
             }
-            log.info("GitHub user profile retrieved: id={}, login={}", profile.getId(), profile.getLogin());
+            log.info("GitHub user profile retrieved");
 
             String email = profile.getEmail();
             if (email == null || email.isBlank()) {
@@ -118,7 +118,7 @@ public class GitHubAuthController {
                         .githubAvatarUrl(profile.getAvatarUrl())
                         .githubAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()))
                         .build();
-                log.info("Created new user from GitHub OAuth: email={}", email);
+                log.info("GitHub OAuth user created");
             } else {
                 // Update existing user with GitHub OAuth data (preserving Google data if exists)
                 user.setName(name);
@@ -127,8 +127,7 @@ public class GitHubAuthController {
                 user.setGithubUsername(profile.getLogin());
                 user.setGithubAvatarUrl(profile.getAvatarUrl());
                 user.setGithubAccessToken(tokenEncryptor.encrypt(tokenResp.getAccessToken()));
-                log.info("Linked GitHub account to existing user: email={}, hasGoogle={}", 
-                    email, user.getGoogleId() != null);
+                log.info("GitHub OAuth account linked");
             }
 
             userRepository.save(user);
@@ -140,7 +139,7 @@ public class GitHubAuthController {
                     .user(userService.toDto(user))
                     .build());
         } catch (Exception ex) {
-            log.error("GitHub OAuth login failed", ex);
+            log.error("GitHub OAuth login failed");
             // Avoid leaking secrets; provide a generic response
             clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_github");
             return ResponseEntity.status(502).build();

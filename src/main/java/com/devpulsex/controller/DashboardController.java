@@ -33,13 +33,12 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get project-level metrics")
     public List<ProjectMetricsDto> getProjectMetrics(Authentication authentication) {
-        log.info("Fetching project metrics for user: {}", authentication != null ? authentication.getName() : "anonymous");
         try {
             List<ProjectMetricsDto> metrics = dashboardService.getAllProjectMetrics();
-            log.info("Successfully fetched {} project metrics", metrics.size());
+            log.info("Project metrics fetch succeeded");
             return metrics;
         } catch (Exception e) {
-            log.error("Error fetching project metrics: {}", e.getMessage(), e);
+            log.error("Project metrics fetch failed");
             throw e;
         }
     }
@@ -48,13 +47,12 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get user-level metrics")
     public List<UserMetricsDto> getUserMetrics(Authentication authentication) {
-        log.info("Fetching user metrics for user: {}", authentication != null ? authentication.getName() : "anonymous");
         try {
             List<UserMetricsDto> metrics = dashboardService.getAllUserMetrics();
-            log.info("Successfully fetched {} user metrics", metrics.size());
+            log.info("User metrics fetch succeeded");
             return metrics;
         } catch (Exception e) {
-            log.error("Error fetching user metrics: {}", e.getMessage(), e);
+            log.error("User metrics fetch failed");
             throw e;
         }
     }
@@ -63,13 +61,12 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get dashboard summary")
     public DashboardDto getSummary(Authentication authentication) {
-        log.info("Fetching dashboard summary for user: {}", authentication != null ? authentication.getName() : "anonymous");
         try {
             DashboardDto summary = dashboardService.getDashboardSummary();
-            log.info("Successfully fetched dashboard summary");
+            log.info("Dashboard summary fetch succeeded");
             return summary;
         } catch (Exception e) {
-            log.error("Error fetching dashboard summary: {}", e.getMessage(), e);
+            log.error("Dashboard summary fetch failed");
             throw e;
         }
     }
@@ -78,7 +75,6 @@ public class DashboardController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get Trello aggregate for a project")
     public Object getTrelloForProject(@PathVariable Long projectId, Authentication authentication) {
-        log.debug("Fetching Trello dashboard for project {}", projectId);
         return dashboardService.getTrelloDashboardForProject(projectId, authentication);
     }
 }

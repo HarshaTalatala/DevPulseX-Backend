@@ -54,24 +54,20 @@ public class GitHubAnalyticsController {
             }
 
             String userEmail = authentication.getName();
-            log.debug("Fetching GitHub insights for user: {}", userEmail);
 
             User user = userRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
 
             if (user.getGithubAccessToken() == null || user.getGithubAccessToken().isBlank()) {
-                log.warn("User {} has no GitHub access token", userEmail);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
             if (user.getGithubUsername() == null || user.getGithubUsername().isBlank()) {
-                log.warn("User {} has no GitHub username", userEmail);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
             String githubToken = tokenEncryptor.decryptLenient(user.getGithubAccessToken());
             if (githubToken == null || githubToken.isBlank()) {
-                log.warn("User {} has invalid GitHub token state", userEmail);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
@@ -86,7 +82,7 @@ public class GitHubAnalyticsController {
                 insights.setAvatarUrl(user.getGithubAvatarUrl());
             }
 
-            log.info("Successfully fetched GitHub insights for user: {}", userEmail);
+            log.info("GitHub insights fetch succeeded");
             
             // Add cache-control headers for browser caching (5 minutes)
             // Also enable compression via Accept-Encoding header
@@ -98,7 +94,7 @@ public class GitHubAnalyticsController {
                     .body(insights);
 
         } catch (Exception e) {
-            log.error("Error fetching GitHub insights", e);
+            log.error("GitHub insights fetch failed");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -114,21 +110,19 @@ public class GitHubAnalyticsController {
             }
 
             String userEmail = authentication.getName();
-            log.debug("Fetching GitHub repositories for user: {}", userEmail);
 
             User user = userRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
 
             if (user.getGithubAccessToken() == null || user.getGithubAccessToken().isBlank()) {
-                log.warn("User {} has no GitHub access token", userEmail);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("GitHub not connected. Please connect your GitHub account.");
+                    .body("Authentication failed");
             }
 
             String githubToken = tokenEncryptor.decryptLenient(user.getGithubAccessToken());
             if (githubToken == null || githubToken.isBlank()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("GitHub token is unavailable. Please reconnect your GitHub account.");
+                    .body("Authentication failed");
             }
 
             // Use resilient service with automatic cache fallback
@@ -136,10 +130,10 @@ public class GitHubAnalyticsController {
             
             if (repos == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Failed to fetch repositories from GitHub");
+                        .body("External integration failed");
             }
 
-            log.info("Successfully fetched {} repositories for user: {}", repos.size(), userEmail);
+            log.info("GitHub repositories fetch succeeded");
             
             // Add cache-control headers (10 minutes - repositories change less frequently)
             return ResponseEntity.ok()
@@ -150,9 +144,9 @@ public class GitHubAnalyticsController {
                     .body(repos);
 
         } catch (Exception e) {
-            log.error("Error fetching GitHub repositories", e);
+            log.error("GitHub repositories fetch failed");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
+                    .body("External integration failed");
         }
     }
 }

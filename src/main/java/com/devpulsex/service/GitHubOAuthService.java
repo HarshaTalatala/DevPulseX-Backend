@@ -53,10 +53,10 @@ public class GitHubOAuthService {
                     .bodyToMono(GitHubTokenResponse.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("GitHub token exchange failed: status={}", e.getStatusCode().value());
+            log.error("GitHub token exchange failed");
             return null;
         } catch (Exception e) {
-            log.error("GitHub token exchange unexpected error", e);
+            log.error("GitHub token exchange failed");
             return null;
         }
     }
@@ -73,10 +73,10 @@ public class GitHubOAuthService {
                     .bodyToMono(GitHubUserProfile.class)
                     .block();
         } catch (WebClientResponseException e) {
-            log.error("GitHub user profile failed: status={}", e.getStatusCode().value());
+            log.error("GitHub user profile fetch failed");
             return null;
         } catch (Exception e) {
-            log.error("GitHub user profile unexpected error", e);
+            log.error("GitHub user profile fetch failed");
             return null;
         }
     }
@@ -108,9 +108,9 @@ public class GitHubOAuthService {
                 }
             }
         } catch (WebClientResponseException e) {
-            log.warn("GitHub email fetch failed: status={}", e.getStatusCode().value());
+            log.warn("GitHub email fetch failed");
         } catch (Exception e) {
-            log.warn("GitHub email fetch unexpected error", e);
+            log.warn("GitHub email fetch failed");
         }
         return null;
     }

@@ -31,7 +31,7 @@ public class TrelloController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('DEVELOPER')")
     @Operation(summary = "Get Trello boards for user")
     public Object getBoards(Authentication authentication) {
-        log.info("GET /api/trello/boards - Fetching boards for user: {}", authentication.getName());
+        log.info("Trello boards request started");
         return trelloService.getUserBoards(authentication);
     }
 

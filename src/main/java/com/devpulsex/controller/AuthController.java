@@ -68,7 +68,7 @@ public class AuthController {
         }
 
         if (request.getRole() != null && request.getRole() != Role.DEVELOPER) {
-            log.warn("Ignoring non-developer role '{}' during public registration for {}", request.getRole(), request.getEmail());
+            log.warn("Ignoring non-developer role during public registration");
         }
 
         User user = User.builder()
@@ -79,7 +79,7 @@ public class AuthController {
                 .build();
         userRepository.save(user);
         String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
-        log.info("Registered new user {} with role {}", user.getEmail(), user.getRole());
+        log.info("User registration succeeded");
         return ResponseEntity.ok(AuthResponse.builder()
                 .token(token)
                 .user(userService.toDto(user))
@@ -94,7 +94,7 @@ public class AuthController {
         );
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
         String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
-        log.info("User {} logged in", user.getEmail());
+        log.info("User login succeeded");
         return ResponseEntity.ok(AuthResponse.builder()
                 .token(token)
                 .user(userService.toDto(user))

@@ -36,28 +36,19 @@ public class GitHubService {
      */
     @Cacheable(value = "githubInsights", key = "#username")
     public GithubInsightsResponse fetchInsights(String username, String accessToken) {
-        log.info("=== Starting GitHub insights fetch for user: {} (CACHE MISS) ===", username);
+        log.info("GitHub insights fetch started");
         try {
             // Fetch user profile data
-            log.debug("Fetching user profile...");
             JsonNode userProfile = fetchUserProfile(username, accessToken);
             
             // Fetch activity metrics
-            log.debug("Fetching repo count...");
             int repoCount = fetchRepoCount(accessToken);
-            log.debug("Fetching total pull requests...");
             int prTotal = fetchTotalPullRequests(username, accessToken);
-            log.debug("Fetching total issues...");
             int issueTotal = fetchTotalIssues(username, accessToken);
-            log.debug("Fetching recent commits (last 7 days)...");
             int recentCommits = fetchRecentCommitCount(username, accessToken);
-            log.debug("Fetching recent PRs (last 7 days)...");
             int recentPRs = fetchRecentPRCount(username, accessToken);
-            log.debug("Fetching recent issues (last 7 days)...");
             int recentIssuesCount = fetchRecentIssuesCount(username, accessToken);
-            log.debug("Fetching total stars...");
             int totalStars = fetchTotalStars(accessToken);
-            log.debug("Fetching most active repo...");
             String mostActiveRepo = fetchMostActiveRepo(username, accessToken);
             
             // Extract profile data
@@ -65,13 +56,7 @@ public class GitHubService {
             int following = userProfile != null ? userProfile.path("following").asInt(0) : 0;
             int publicGists = userProfile != null ? userProfile.path("public_gists").asInt(0) : 0;
             
-            log.info("=== GitHub insights fetched successfully for {} ===", username);
-            log.info("Total Stats: repos={}, totalPRs={}, totalIssues={}, stars={}", 
-                    repoCount, prTotal, issueTotal, totalStars);
-            log.info("Recent Activity (7 days): commits={}, PRs={}, issues={}", 
-                    recentCommits, recentPRs, recentIssuesCount);
-            log.info("Profile: followers={}, following={}, gists={}, mostActiveRepo={}", 
-                    followers, following, publicGists, mostActiveRepo);
+                log.info("GitHub insights fetch succeeded");
             
             return GithubInsightsResponse.builder()
                     .username(username)
@@ -91,7 +76,7 @@ public class GitHubService {
                     .profileUrl("https://github.com/" + username)
                     .build();
         } catch (Exception e) {
-            log.error("Error fetching GitHub insights for user: {}", username, e);
+            log.error("GitHub insights fetch failed");
             // Return empty insights on error rather than failing
             return GithubInsightsResponse.builder()
                     .username(username)
@@ -123,7 +108,7 @@ public class GitHubService {
                     .bodyToMono(JsonNode.class)
                     .block();
         } catch (Exception e) {
-            log.warn("Error fetching user profile: {}", e.getMessage());
+            log.warn("GitHub user profile fetch failed");
             return null;
         }
     }
@@ -145,7 +130,7 @@ public class GitHubService {
                     .block();
             return search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
         } catch (Exception e) {
-            log.warn("Error fetching total issues: {}", e.getMessage());
+            log.warn("GitHub total issues fetch failed");
             return 0;
         }
     }
@@ -167,7 +152,7 @@ public class GitHubService {
                     .block();
             return search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
         } catch (Exception e) {
-            log.warn("Error fetching open issues: {}", e.getMessage());
+            log.warn("GitHub open issues fetch failed");
             return 0;
         }
     }
@@ -177,7 +162,6 @@ public class GitHubService {
             Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
             String dateStr = cutoff.toString().substring(0, 10);
             String query = "type:pr+author:" + username + "+created:>=" + dateStr;
-            log.debug("Fetching recent PRs with query: {}", query);
             JsonNode search = webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https")
@@ -192,10 +176,10 @@ public class GitHubService {
                     .bodyToMono(JsonNode.class)
                     .block();
             int count = search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
-            log.info("Found {} recent PRs for user: {}", count, username);
+            log.info("GitHub recent PR count fetched");
             return count;
         } catch (Exception e) {
-            log.error("Error fetching recent PRs for user {}: {}", username, e.getMessage(), e);
+            log.error("GitHub recent PR fetch failed");
             return 0;
         }
     }
@@ -205,7 +189,6 @@ public class GitHubService {
             Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
             String dateStr = cutoff.toString().substring(0, 10);
             String query = "type:issue+author:" + username + "+created:>=" + dateStr;
-            log.debug("Fetching recent issues with query: {}", query);
             JsonNode search = webClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https")
@@ -220,10 +203,10 @@ public class GitHubService {
                     .bodyToMono(JsonNode.class)
                     .block();
             int count = search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
-            log.info("Found {} recent issues for user: {}", count, username);
+            log.info("GitHub recent issue count fetched");
             return count;
         } catch (Exception e) {
-            log.error("Error fetching recent issues for user {}: {}", username, e.getMessage(), e);
+            log.error("GitHub recent issue fetch failed");
             return 0;
         }
     }
@@ -244,7 +227,7 @@ public class GitHubService {
             }
             return stars;
         } catch (Exception e) {
-            log.warn("Error fetching total stars: {}", e.getMessage());
+            log.warn("GitHub total stars fetch failed");
             return 0;
         }
     }
@@ -278,7 +261,7 @@ public class GitHubService {
                     .map(java.util.Map.Entry::getKey)
                     .orElse("");
         } catch (Exception e) {
-            log.warn("Error fetching most active repo: {}", e.getMessage());
+            log.warn("GitHub most active repo fetch failed");
             return "";
         }
     }
@@ -295,7 +278,7 @@ public class GitHubService {
                     .block();
             return repos != null ? repos.size() : 0;
         } catch (Exception e) {
-            log.warn("Error fetching repo count: {}", e.getMessage());
+            log.warn("GitHub repo count fetch failed");
             return 0;
         }
     }
@@ -318,7 +301,7 @@ public class GitHubService {
                     .block();
             return search != null && search.has("total_count") ? search.get("total_count").asInt() : 0;
         } catch (Exception e) {
-            log.warn("Error fetching PR count: {}", e.getMessage());
+            log.warn("GitHub PR count fetch failed");
             return 0;
         }
     }
@@ -339,12 +322,11 @@ public class GitHubService {
                     .bodyToMono(JsonNode.class)
                     .block();
             if (events == null || !events.isArray()) {
-                log.warn("No events returned for user: {}", username);
+                log.warn("GitHub activity events fetch failed");
                 return 0;
             }
             Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
             int commits = 0;
-            log.debug("Processing {} events for user: {}", events.size(), username);
             for (JsonNode ev : events) {
                 String type = ev.path("type").asText("");
                 String createdAt = ev.path("created_at").asText("");
@@ -355,17 +337,16 @@ public class GitHubService {
                             // payload.size is number of commits in push
                             int pushSize = ev.path("payload").path("size").asInt(0);
                             commits += pushSize;
-                            log.debug("Found PushEvent with {} commits at {}", pushSize, createdAt);
                         }
                     } catch (Exception e) {
-                        log.warn("Error parsing event timestamp: {}", createdAt);
+                        log.warn("GitHub event timestamp parse failed");
                     }
                 }
             }
-            log.info("Found {} recent commits for user: {}", commits, username);
+            log.info("GitHub recent commit count fetched");
             return commits;
         } catch (Exception e) {
-            log.error("Error fetching recent commits for user {}: {}", username, e.getMessage(), e);
+            log.error("GitHub recent commit fetch failed");
             return 0;
         }
     }
@@ -376,7 +357,7 @@ public class GitHubService {
      */
     @Cacheable(value = "githubRepositories", key = "#accessToken.hashCode()")
     public JsonNode fetchRepositories(String accessToken) {
-        log.info("Fetching GitHub repositories (CACHE MISS)");
+        log.info("GitHub repositories fetch started");
         try {
             String uri = "https://api.github.com/user/repos?per_page=100&sort=updated";
             JsonNode response = webClient.get()
@@ -387,10 +368,10 @@ public class GitHubService {
                     .bodyToMono(JsonNode.class)
                     .block();
             
-            log.info("Successfully fetched {} repositories", response != null ? response.size() : 0);
+            log.info("GitHub repositories fetch succeeded");
             return response;
         } catch (Exception e) {
-            log.error("Error fetching repositories: {}", e.getMessage());
+            log.error("GitHub repositories fetch failed");
             return null;
         }
     }
