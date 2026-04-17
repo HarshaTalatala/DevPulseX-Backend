@@ -107,10 +107,9 @@ public class TrelloService {
     public TaskStatus mapListNameToStatus(String listName) {
         if (listName == null) return TaskStatus.TODO;
         String ln = listName.toLowerCase();
-        if (ln.contains("done") || ln.contains("complete") || ln.matches(".*\bdone\b.*")) return TaskStatus.DONE;
+        if (ln.contains("done") || ln.contains("complete") || ln.matches(".*\\bdone\\b.*")) return TaskStatus.DONE;
         if (ln.contains("doing") || ln.contains("progress") || ln.contains("review")) return TaskStatus.IN_PROGRESS;
         if (ln.contains("block")) return TaskStatus.BLOCKED;
-        if (ln.contains("review")) return TaskStatus.REVIEW;
         return TaskStatus.TODO;
     }
 
