@@ -31,4 +31,5 @@ public class UserDto {
     // Trello OAuth fields
     private String trelloId;
     private String trelloUsername;
+    private String trelloAccessToken;
 }

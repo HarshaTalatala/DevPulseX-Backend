@@ -94,6 +94,7 @@ public class UserService {
                 .googlePictureUrl(u.getGooglePictureUrl())
                 .trelloId(u.getTrelloId())
                 .trelloUsername(u.getTrelloUsername())
+                .trelloAccessToken(u.getTrelloAccessToken())
                 .build();
     }
 }

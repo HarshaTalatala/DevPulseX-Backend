@@ -35,6 +35,12 @@ services:
         sync: false
       - key: CORS_ALLOWED_ORIGINS
         sync: false
+      - key: TRELLO_KEY
+        sync: false
+      - key: TRELLO_ENC_SECRET
+        sync: false
+      - key: TRELLO_REDIRECT_URI
+        sync: false
       - key: SPRING_PROFILES_ACTIVE
         value: prod
 
