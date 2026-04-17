@@ -3,7 +3,6 @@ package com.devpulsex.dto.auth;
 import com.devpulsex.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -20,6 +19,6 @@ public class RegisterRequest {
     @Size(min = 6)
     private String password;
 
-    @NotNull
+    // Ignored for public registration. Backend always assigns DEVELOPER.
     private Role role;
 }

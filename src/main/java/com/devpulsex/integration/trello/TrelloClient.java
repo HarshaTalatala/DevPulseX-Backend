@@ -120,13 +120,24 @@ public class TrelloClient {
                 handleRateLimitHeaders(response.getHeaders());
                 return objectMapper.readTree(response.getBody());
             } catch (RestClientException ex) {
-                if (ex.getMessage() != null && ex.getMessage().contains("429") && attempt < 3) {
+                String errorMsg = ex.getMessage() != null ? ex.getMessage() : "Unknown error";
+                log.error("[TrelloClient] Request failed for path={}, attempt={}, error={}", path, attempt, errorMsg);
+                
+                if (errorMsg.contains("429") && attempt < 3) {
                     log.warn("Trello 429 encountered; backing off (attempt {})", attempt);
                     sleepForRetry(1500L * attempt);
                     continue;
                 }
+                
+                // For 401/403, don't retry - token is likely invalid
+                if (errorMsg.contains("401") || errorMsg.contains("403")) {
+                    log.error("[TrelloClient] Authentication error (401/403) - token may be invalid or expired for path={}", path);
+                    throw new RestClientException("Trello authentication failed. Please re-link your account.", ex);
+                }
+                
                 throw ex;
             } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                log.error("[TrelloClient] Failed to parse Trello JSON response for path={}", path, e);
                 throw new RestClientException("Failed to parse Trello response", e);
             }
         }

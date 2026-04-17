@@ -2,8 +2,10 @@ package com.devpulsex.controller;
 
 import com.devpulsex.dto.task.TaskDto;
 import com.devpulsex.model.Project;
+import com.devpulsex.model.Task;
 import com.devpulsex.model.TaskStatus;
 import com.devpulsex.repository.ProjectRepository;
+import com.devpulsex.repository.TaskRepository;
 import com.devpulsex.service.TaskService;
 import com.devpulsex.service.TrelloService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 @RestController
 @RequestMapping("/api/trello")
@@ -24,11 +28,16 @@ public class TrelloSyncController {
     private final TrelloService trelloService;
     private final ProjectRepository projectRepository;
     private final TaskService taskService;
+    private final TaskRepository taskRepository;
 
-    public TrelloSyncController(TrelloService trelloService, ProjectRepository projectRepository, TaskService taskService) {
+    public TrelloSyncController(TrelloService trelloService,
+                                ProjectRepository projectRepository,
+                                TaskService taskService,
+                                TaskRepository taskRepository) {
         this.trelloService = trelloService;
         this.projectRepository = projectRepository;
         this.taskService = taskService;
+        this.taskRepository = taskRepository;
     }
 
     @PostMapping("/project/{projectId}/sync-tasks")
@@ -41,6 +50,12 @@ public class TrelloSyncController {
         if (boardId == null || boardId.isBlank()) {
             throw new IllegalArgumentException("Project has no trelloBoardId configured");
         }
+
+        Set<String> existingTaskKeys = new HashSet<>();
+        for (Task task : taskRepository.findByProject_Id(projectId)) {
+            existingTaskKeys.add(taskKey(task.getTitle(), task.getDescription()));
+        }
+
         JsonNode lists = trelloService.getBoardLists(boardId, authentication);
         int created = 0; int updated = 0; int ignored = 0;
         if (lists != null && lists.isArray()) {
@@ -57,8 +72,13 @@ public class TrelloSyncController {
                                 .projectId(projectId)
                                 .status(inferred)
                                 .build();
-                        // naive: create a new task for each card (no idempotency key). In production, match by external id.
+                        String key = taskKey(dto.getTitle(), dto.getDescription());
+                        if (existingTaskKeys.contains(key)) {
+                            ignored++;
+                            continue;
+                        }
                         taskService.create(dto);
+                        existingTaskKeys.add(key);
                         created++;
                     }
                 }
@@ -69,5 +89,11 @@ public class TrelloSyncController {
         result.put("updated", updated);
         result.put("ignored", ignored);
         return result;
+    }
+
+    private String taskKey(String title, String description) {
+        String normalizedTitle = title == null ? "" : title.trim().toLowerCase();
+        String normalizedDescription = description == null ? "" : description.trim().toLowerCase();
+        return normalizedTitle + "|" + normalizedDescription;
     }
 }

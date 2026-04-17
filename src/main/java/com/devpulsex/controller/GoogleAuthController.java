@@ -56,8 +56,7 @@ public class GoogleAuthController {
     @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
         try {
-            log.info("Received Google OAuth request: {}", request);
-            log.info("Google OAuth login attempt with code={}", request.getCode());
+            log.info("Google OAuth login attempt");
             
             // Exchange code for access token
             GoogleTokenResponse tokenResp = oAuthService.exchangeCodeForToken(request.getCode());
