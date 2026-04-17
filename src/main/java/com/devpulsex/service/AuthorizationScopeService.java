@@ -11,14 +11,22 @@ import com.devpulsex.exception.ResourceNotFoundException;
 import com.devpulsex.model.Project;
 import com.devpulsex.model.Team;
 import com.devpulsex.model.User;
+import com.devpulsex.repository.ProjectRepository;
+import com.devpulsex.repository.TeamRepository;
 import com.devpulsex.repository.UserRepository;
 
 @Service
 public class AuthorizationScopeService {
     private final UserRepository userRepository;
+    private final TeamRepository teamRepository;
+    private final ProjectRepository projectRepository;
 
-    public AuthorizationScopeService(UserRepository userRepository) {
+    public AuthorizationScopeService(UserRepository userRepository,
+            TeamRepository teamRepository,
+            ProjectRepository projectRepository) {
         this.userRepository = userRepository;
+        this.teamRepository = teamRepository;
+        this.projectRepository = projectRepository;
     }
 
     public User getCurrentUser() {
@@ -40,17 +48,23 @@ public class AuthorizationScopeService {
         if (isAdmin(currentUser)) {
             return true;
         }
-        if (team == null || team.getMembers() == null) {
+        if (team == null || team.getId() == null) {
             return false;
         }
-        return team.getMembers().stream().anyMatch(member -> Objects.equals(member.getId(), currentUser.getId()));
+        return teamRepository.existsByIdAndMembers_Id(team.getId(), currentUser.getId());
     }
 
     public boolean hasProjectAccess(Project project) {
-        if (project == null) {
+        if (project == null || project.getId() == null) {
             return false;
         }
-        return hasTeamAccess(project.getTeam());
+
+        User currentUser = getCurrentUser();
+        if (isAdmin(currentUser)) {
+            return true;
+        }
+
+        return projectRepository.existsByIdAndTeam_Members_Id(project.getId(), currentUser.getId());
     }
 
     public void requireTeamAccess(Team team) {

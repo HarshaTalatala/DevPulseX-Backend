@@ -20,8 +20,7 @@ public class AuthIntegrationTest extends BaseIntegrationTest {
         String registerJson = "{" +
                 "\"name\":\"Admin User\"," +
                 "\"email\":\"" + email + "\"," +
-                "\"password\":\"" + password + "\"," +
-                "\"role\":\"ADMIN\"" +
+                "\"password\":\"" + password + "\"" +
                 "}";
 
         mockMvc.perform(post("/api/auth/register")
@@ -31,7 +30,7 @@ public class AuthIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty())
                 .andExpect(jsonPath("$.user.email").value(email))
-                .andExpect(jsonPath("$.user.role").value("ADMIN"));
+                .andExpect(jsonPath("$.user.role").value("DEVELOPER"));
 
         // Login
         String loginJson = "{" +

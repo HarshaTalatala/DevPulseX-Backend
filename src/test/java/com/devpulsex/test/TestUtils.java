@@ -1,5 +1,9 @@
 package com.devpulsex.test;
 
+import com.devpulsex.model.Role;
+import com.devpulsex.repository.UserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -9,38 +13,52 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class TestUtils {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @SuppressWarnings("null")
-    public static String registerAndLoginAdmin(MockMvc mockMvc, String email) throws Exception {
-        String password = "Admin@123";
-        // Register
+    public static void registerUser(MockMvc mockMvc, String email, String password) throws Exception {
         String registerJson = "{" +
-                "\"name\":\"Admin User\"," +
+                "\"name\":\"Test User\"," +
                 "\"email\":\"" + email + "\"," +
-                "\"password\":\"" + password + "\"," +
-                "\"role\":\"ADMIN\"" +
+                "\"password\":\"" + password + "\"" +
                 "}";
+
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerJson))
                 .andExpect(status().isOk());
+    }
 
-        // Login
+    @SuppressWarnings("null")
+    public static String loginUser(MockMvc mockMvc, String email, String password) throws Exception {
         String loginJson = "{" +
                 "\"email\":\"" + email + "\"," +
                 "\"password\":\"" + password + "\"" +
                 "}";
+
         ResultActions loginResult = mockMvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginJson))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk());
 
         String response = loginResult.andReturn().getResponse().getContentAsString();
-        // naive parse token from JSON: {"token":"...",
-        int tokenIdx = response.indexOf("\"token\":");
-        if (tokenIdx < 0) throw new IllegalStateException("Token not found in response: " + response);
-        int colon = response.indexOf(':', tokenIdx);
-        int startQuote = response.indexOf('"', colon + 1);
-        int endQuote = response.indexOf('"', startQuote + 1);
-        return response.substring(startQuote + 1, endQuote);
+        JsonNode root = OBJECT_MAPPER.readTree(response);
+        return root.path("token").asText();
+    }
+
+    public static void promoteUser(UserRepository userRepository, String email, Role role) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            user.setRole(role);
+            userRepository.save(user);
+        });
+    }
+
+    @SuppressWarnings("null")
+    public static String registerAndLoginAdmin(MockMvc mockMvc, UserRepository userRepository, String email) throws Exception {
+        String password = "Admin@123";
+
+        registerUser(mockMvc, email, password);
+        promoteUser(userRepository, email, Role.ADMIN);
+        return loginUser(mockMvc, email, password);
     }
 }

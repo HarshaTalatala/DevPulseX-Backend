@@ -1,6 +1,8 @@
 package com.devpulsex.test;
 
+import com.devpulsex.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,6 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserEndpointIntegrationTest extends BaseIntegrationTest {
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     void getUsers_withoutAuth_shouldReturn403() throws Exception {
@@ -19,7 +24,7 @@ public class UserEndpointIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void getUsers_withAdminToken_shouldReturn200() throws Exception {
-        String token = TestUtils.registerAndLoginAdmin(mockMvc, "admin-users@example.com");
+        String token = TestUtils.registerAndLoginAdmin(mockMvc, userRepository, "admin-users@example.com");
         mockMvc.perform(get("/api/users")
                         .header("Authorization", "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON))
