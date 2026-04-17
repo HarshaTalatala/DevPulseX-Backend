@@ -58,8 +58,7 @@ public class GitHubAuthController {
     @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> githubLogin(@Valid @RequestBody GitHubAuthRequest request) {
         try {
-            log.info("Received GitHub OAuth request: {}", request);
-            log.info("GitHub OAuth login attempt with code={}", request.getCode());
+            log.info("GitHub OAuth login attempt");
             GitHubTokenResponse tokenResp = oAuthService.exchangeCodeForToken(request.getCode());
             if (tokenResp == null || tokenResp.getAccessToken() == null) {
                 log.warn("GitHub token exchange returned null or no access token");

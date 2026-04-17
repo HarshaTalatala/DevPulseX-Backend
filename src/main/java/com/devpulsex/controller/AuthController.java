@@ -17,6 +17,7 @@ import com.devpulsex.config.security.JwtUtil;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.auth.LoginRequest;
 import com.devpulsex.dto.auth.RegisterRequest;
+import com.devpulsex.model.Role;
 import com.devpulsex.model.User;
 import com.devpulsex.repository.UserRepository;
 import com.devpulsex.service.UserService;
@@ -57,11 +58,16 @@ public class AuthController {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().build();
         }
+
+        if (request.getRole() != null && request.getRole() != Role.DEVELOPER) {
+            log.warn("Ignoring non-developer role '{}' during public registration for {}", request.getRole(), request.getEmail());
+        }
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(Role.DEVELOPER)
                 .build();
         userRepository.save(user);
         String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
