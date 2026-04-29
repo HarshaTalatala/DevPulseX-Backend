@@ -118,9 +118,10 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
+        boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
         ResponseCookie stateCookie = ResponseCookie.from("oauth_state_" + normalizedProvider, state)
             .httpOnly(true)
-            .secure(httpRequest.isSecure())
+            .secure(isSecure)
             .sameSite("None")
             .path("/api/auth")
             .maxAge(300)

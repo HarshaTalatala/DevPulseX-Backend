@@ -72,7 +72,10 @@ public class GoogleAuthController {
             log.info("Google OAuth login attempt");
 
             if (expectedState == null || expectedState.isBlank() || !expectedState.equals(request.getState())) {
-                log.warn("Google OAuth state validation failed");
+                log.warn("Google OAuth state validation failed - cookiePresent={}, expectedLen={}, providedLen={}",
+                        (expectedState != null && !expectedState.isBlank()),
+                        expectedState == null ? 0 : expectedState.length(),
+                        request.getState() == null ? 0 : request.getState().length());
                 clearOauthStateCookie(httpRequest, httpResponse, "oauth_state_google");
                 return ResponseEntity.badRequest().build();
             }
@@ -155,9 +158,10 @@ public class GoogleAuthController {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull String cookieName) {
+        boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
         ResponseCookie cookie = ResponseCookie.from(cookieName, "")
             .httpOnly(true)
-            .secure(request.isSecure())
+            .secure(isSecure)
             .sameSite("None")
             .path("/api/auth")
             .maxAge(0)
