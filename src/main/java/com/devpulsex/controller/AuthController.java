@@ -119,12 +119,12 @@ public class AuthController {
         }
 
         ResponseCookie stateCookie = ResponseCookie.from("oauth_state_" + normalizedProvider, state)
-                .httpOnly(true)
-                .secure(httpRequest.isSecure())
-                .sameSite("Lax")
-                .path("/api/auth")
-                .maxAge(300)
-                .build();
+            .httpOnly(true)
+            .secure(httpRequest.isSecure())
+            .sameSite("None")
+            .path("/api/auth")
+            .maxAge(300)
+            .build();
         httpResponse.addHeader("Set-Cookie", stateCookie.toString());
 
         return ResponseEntity.ok(Map.of("state", state));

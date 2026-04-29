@@ -156,12 +156,12 @@ public class GoogleAuthController {
             @NonNull HttpServletResponse response,
             @NonNull String cookieName) {
         ResponseCookie cookie = ResponseCookie.from(cookieName, "")
-                .httpOnly(true)
-                .secure(request.isSecure())
-                .sameSite("Lax")
-                .path("/api/auth")
-                .maxAge(0)
-                .build();
+            .httpOnly(true)
+            .secure(request.isSecure())
+            .sameSite("None")
+            .path("/api/auth")
+            .maxAge(0)
+            .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
