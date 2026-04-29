@@ -119,6 +119,10 @@ public class AuthController {
         }
 
         boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
+        String originHeader = httpRequest.getHeader("Origin");
+        log.info("Preparing OAuth state cookie for provider={} origin={} x-forwarded-proto={} isSecure={}",
+            normalizedProvider, originHeader, httpRequest.getHeader("X-Forwarded-Proto"), isSecure);
+
         ResponseCookie stateCookie = ResponseCookie.from("oauth_state_" + normalizedProvider, state)
             .httpOnly(true)
             .secure(isSecure)
