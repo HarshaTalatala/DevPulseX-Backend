@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.devpulsex.config.security.CookieSecuritySupport;
 import com.devpulsex.config.security.JwtUtil;
+import com.devpulsex.config.security.OAuthCookieSecurityResolver;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.auth.LoginRequest;
 import com.devpulsex.dto.auth.OAuthStatePrepareRequest;
@@ -47,20 +48,32 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+<<<<<<< HEAD
     private final CookieSecuritySupport cookieSecuritySupport;
+=======
+    private final OAuthCookieSecurityResolver oauthCookieSecurityResolver;
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtUtil jwtUtil,
                           UserService userService,
+<<<<<<< HEAD
                           CookieSecuritySupport cookieSecuritySupport) {
+=======
+                          OAuthCookieSecurityResolver oauthCookieSecurityResolver) {
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+<<<<<<< HEAD
         this.cookieSecuritySupport = cookieSecuritySupport;
+=======
+        this.oauthCookieSecurityResolver = oauthCookieSecurityResolver;
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
     }
 
     @PostMapping("/register")
@@ -122,7 +135,11 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
+<<<<<<< HEAD
         boolean isSecure = cookieSecuritySupport.isSecure(httpRequest);
+=======
+        boolean isSecure = oauthCookieSecurityResolver.shouldUseSecureCookies(httpRequest);
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
         String originHeader = httpRequest.getHeader("Origin");
         log.info("Preparing OAuth state cookie for provider={} origin={} x-forwarded-proto={} isSecure={}",
             normalizedProvider, originHeader, httpRequest.getHeader("X-Forwarded-Proto"), isSecure);

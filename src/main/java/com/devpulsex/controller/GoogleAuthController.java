@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.devpulsex.config.security.CookieSecuritySupport;
 import com.devpulsex.config.security.JwtUtil;
+import com.devpulsex.config.security.OAuthCookieSecurityResolver;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.google.GoogleAuthRequest;
 import com.devpulsex.dto.google.GoogleTokenResponse;
@@ -48,6 +49,7 @@ public class GoogleAuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final OAuthTokenEncryptor tokenEncryptor;
+<<<<<<< HEAD
     private final CookieSecuritySupport cookieSecuritySupport;
 
     public GoogleAuthController(GoogleOAuthService oAuthService,
@@ -57,16 +59,32 @@ public class GoogleAuthController {
                                UserService userService,
                                OAuthTokenEncryptor tokenEncryptor,
                                CookieSecuritySupport cookieSecuritySupport) {
+=======
+    private final OAuthCookieSecurityResolver oauthCookieSecurityResolver;
+
+    public GoogleAuthController(GoogleOAuthService oAuthService,
+                               UserRepository userRepository,
+                                PasswordEncoder passwordEncoder,
+                                JwtUtil jwtUtil,
+                                UserService userService,
+                                OAuthTokenEncryptor tokenEncryptor,
+                                OAuthCookieSecurityResolver oauthCookieSecurityResolver) {
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.tokenEncryptor = tokenEncryptor;
+<<<<<<< HEAD
         this.cookieSecuritySupport = cookieSecuritySupport;
     }
 
     @PostMapping("/google")
+=======
+        this.oauthCookieSecurityResolver = oauthCookieSecurityResolver;
+    }    @PostMapping("/google")
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
     @Operation(summary = "Exchange Google code for JWT and user info")
     @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> googleLogin(
@@ -164,7 +182,11 @@ public class GoogleAuthController {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull String cookieName) {
+<<<<<<< HEAD
         boolean isSecure = cookieSecuritySupport.isSecure(request);
+=======
+        boolean isSecure = oauthCookieSecurityResolver.shouldUseSecureCookies(request);
+>>>>>>> c9d231d667052813abceeb53e5868f69d6ae9d24
         ResponseCookie cookie = ResponseCookie.from(cookieName, "")
             .httpOnly(true)
             .secure(isSecure)
