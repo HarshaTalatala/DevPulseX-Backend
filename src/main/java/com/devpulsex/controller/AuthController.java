@@ -127,7 +127,7 @@ public class AuthController {
             .httpOnly(true)
             .secure(isSecure)
             .sameSite("None")
-            .path("/api/auth")
+            .path("/")
             .maxAge(300)
             .build();
         httpResponse.addHeader("Set-Cookie", stateCookie.toString());

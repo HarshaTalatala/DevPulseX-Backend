@@ -163,7 +163,7 @@ public class GoogleAuthController {
             .httpOnly(true)
             .secure(isSecure)
             .sameSite("None")
-            .path("/api/auth")
+            .path("/")
             .maxAge(0)
             .build();
         response.addHeader("Set-Cookie", cookie.toString());

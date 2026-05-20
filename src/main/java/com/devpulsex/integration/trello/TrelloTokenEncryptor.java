@@ -27,7 +27,7 @@ public class TrelloTokenEncryptor {
     private final byte[] keyBytes;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public TrelloTokenEncryptor(@Value("${trello.encryption.secret}") String secret) {
+    public TrelloTokenEncryptor(@Value("${trello.encryption.secret:${TRELLO_ENC_SECRET:}}") String secret) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException("trello.encryption.secret is required and must be set via TRELLO_ENC_SECRET");
         }

@@ -46,7 +46,7 @@ public class GitHubAnalyticsController {
     @GetMapping("/insights")
     @Operation(summary = "Get GitHub analytics for authenticated user", 
                description = "Fetches developer productivity metrics including repos, commits, and PRs")
-    public ResponseEntity<GithubInsightsResponse> getInsights(Authentication authentication) {
+    public ResponseEntity<?> getInsights(Authentication authentication) {
         try {
             if (authentication == null || authentication.getName() == null) {
                 log.warn("Unauthorized access attempt to /api/github/insights");
@@ -59,16 +59,19 @@ public class GitHubAnalyticsController {
                     .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
 
             if (user.getGithubAccessToken() == null || user.getGithubAccessToken().isBlank()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(java.util.Map.of("message", "GitHub account not linked"));
             }
 
             if (user.getGithubUsername() == null || user.getGithubUsername().isBlank()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(java.util.Map.of("message", "GitHub account not linked"));
             }
 
             String githubToken = tokenEncryptor.decryptLenient(user.getGithubAccessToken());
             if (githubToken == null || githubToken.isBlank()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(java.util.Map.of("message", "GitHub account not linked"));
             }
 
             // Use resilient service with automatic cache fallback
@@ -116,13 +119,13 @@ public class GitHubAnalyticsController {
 
             if (user.getGithubAccessToken() == null || user.getGithubAccessToken().isBlank()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Authentication failed");
+                        .body(java.util.Map.of("message", "GitHub account not linked"));
             }
 
             String githubToken = tokenEncryptor.decryptLenient(user.getGithubAccessToken());
             if (githubToken == null || githubToken.isBlank()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Authentication failed");
+                        .body(java.util.Map.of("message", "GitHub account not linked"));
             }
 
             // Use resilient service with automatic cache fallback
