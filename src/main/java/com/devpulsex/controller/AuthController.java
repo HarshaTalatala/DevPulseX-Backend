@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.devpulsex.config.security.JwtUtil;
+import com.devpulsex.config.security.OAuthCookieSecurityResolver;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.auth.LoginRequest;
 import com.devpulsex.dto.auth.OAuthStatePrepareRequest;
@@ -46,17 +47,20 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final OAuthCookieSecurityResolver oauthCookieSecurityResolver;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtUtil jwtUtil,
-                          UserService userService) {
+                          UserService userService,
+                          OAuthCookieSecurityResolver oauthCookieSecurityResolver) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.oauthCookieSecurityResolver = oauthCookieSecurityResolver;
     }
 
     @PostMapping("/register")
@@ -118,7 +122,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
+        boolean isSecure = oauthCookieSecurityResolver.shouldUseSecureCookies(httpRequest);
         String originHeader = httpRequest.getHeader("Origin");
         log.info("Preparing OAuth state cookie for provider={} origin={} x-forwarded-proto={} isSecure={}",
             normalizedProvider, originHeader, httpRequest.getHeader("X-Forwarded-Proto"), isSecure);
