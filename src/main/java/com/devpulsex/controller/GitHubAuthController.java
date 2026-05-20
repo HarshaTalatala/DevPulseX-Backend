@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.devpulsex.config.security.CookieSecuritySupport;
 import com.devpulsex.config.security.JwtUtil;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.github.GitHubAuthRequest;
@@ -47,19 +48,22 @@ public class GitHubAuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final OAuthTokenEncryptor tokenEncryptor;
+    private final CookieSecuritySupport cookieSecuritySupport;
 
     public GitHubAuthController(GitHubOAuthService oAuthService,
                                 UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
                                 JwtUtil jwtUtil,
                                 UserService userService,
-                                OAuthTokenEncryptor tokenEncryptor) {
+                                OAuthTokenEncryptor tokenEncryptor,
+                                CookieSecuritySupport cookieSecuritySupport) {
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.tokenEncryptor = tokenEncryptor;
+        this.cookieSecuritySupport = cookieSecuritySupport;
     }
 
     @PostMapping("/github")
@@ -153,7 +157,7 @@ public class GitHubAuthController {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull String cookieName) {
-        boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+        boolean isSecure = cookieSecuritySupport.isSecure(request);
         ResponseCookie cookie = ResponseCookie.from(cookieName, "")
             .httpOnly(true)
             .secure(isSecure)

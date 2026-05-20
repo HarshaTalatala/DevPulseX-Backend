@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.devpulsex.config.security.CookieSecuritySupport;
 import com.devpulsex.config.security.JwtUtil;
 import com.devpulsex.dto.auth.AuthResponse;
 import com.devpulsex.dto.google.GoogleAuthRequest;
@@ -47,20 +48,25 @@ public class GoogleAuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
     private final OAuthTokenEncryptor tokenEncryptor;
+    private final CookieSecuritySupport cookieSecuritySupport;
 
     public GoogleAuthController(GoogleOAuthService oAuthService,
                                UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
                                JwtUtil jwtUtil,
                                UserService userService,
-                               OAuthTokenEncryptor tokenEncryptor) {
+                               OAuthTokenEncryptor tokenEncryptor,
+                               CookieSecuritySupport cookieSecuritySupport) {
         this.oAuthService = oAuthService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.tokenEncryptor = tokenEncryptor;
-    }    @PostMapping("/google")
+        this.cookieSecuritySupport = cookieSecuritySupport;
+    }
+
+    @PostMapping("/google")
     @Operation(summary = "Exchange Google code for JWT and user info")
     @SuppressWarnings("null")
     public ResponseEntity<AuthResponse> googleLogin(
@@ -158,7 +164,7 @@ public class GoogleAuthController {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull String cookieName) {
-        boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+        boolean isSecure = cookieSecuritySupport.isSecure(request);
         ResponseCookie cookie = ResponseCookie.from(cookieName, "")
             .httpOnly(true)
             .secure(isSecure)
