@@ -4,6 +4,7 @@ import com.devpulsex.model.Role;
 import com.devpulsex.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Objects;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -15,7 +16,6 @@ public class TestUtils {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @SuppressWarnings("null")
     public static void registerUser(MockMvc mockMvc, String email, String password) throws Exception {
         String registerJson = "{" +
                 "\"name\":\"Test User\"," +
@@ -24,12 +24,11 @@ public class TestUtils {
                 "}";
 
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
                         .content(registerJson))
                 .andExpect(status().isOk());
     }
 
-    @SuppressWarnings("null")
     public static String loginUser(MockMvc mockMvc, String email, String password) throws Exception {
         String loginJson = "{" +
                 "\"email\":\"" + email + "\"," +
@@ -37,7 +36,7 @@ public class TestUtils {
                 "}";
 
         ResultActions loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
                         .content(loginJson))
                 .andExpect(status().isOk());
 
@@ -53,7 +52,6 @@ public class TestUtils {
         });
     }
 
-    @SuppressWarnings("null")
     public static String registerAndLoginAdmin(MockMvc mockMvc, UserRepository userRepository, String email) throws Exception {
         String password = "Admin@123";
 

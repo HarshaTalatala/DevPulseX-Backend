@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseCookie;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -110,8 +111,8 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> prepareOAuthState(
             @PathVariable String provider,
             @Valid @RequestBody OAuthStatePrepareRequest request,
-            HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse) {
+            @NonNull HttpServletRequest httpRequest,
+            @NonNull HttpServletResponse httpResponse) {
         String normalizedProvider = provider == null ? "" : provider.trim().toLowerCase();
         if (!SUPPORTED_OAUTH_PROVIDERS.contains(normalizedProvider)) {
             return ResponseEntity.badRequest().build();
