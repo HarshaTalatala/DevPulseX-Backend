@@ -11,6 +11,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -100,10 +101,21 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login and return JWT token")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (AuthenticationException ex) {
+            log.warn("Login failed for email: {}", request.getEmail());
+            return ResponseEntity.status(401).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", 401,
+                "error", "Unauthorized",
+                "message", "Incorrect email or password",
+                "path", "/api/auth/login"
+            ));
+        }
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
         String token = jwtUtil.generateToken(user.getEmail(), Map.of("role", user.getRole().name()));
         log.info("User login succeeded");
