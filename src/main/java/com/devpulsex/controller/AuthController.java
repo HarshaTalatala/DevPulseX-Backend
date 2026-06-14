@@ -2,6 +2,7 @@ package com.devpulsex.controller;
 
 import java.util.Map;
 import java.util.Set;
+import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +68,15 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register a new user and return JWT token")
     @SuppressWarnings("null")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", 400,
+                "error", "Bad Request",
+                "message", "An account with this email already exists. Please sign in instead.",
+                "path", "/api/auth/register"
+            ));
         }
 
         if (request.getRole() != null && request.getRole() != Role.DEVELOPER) {
