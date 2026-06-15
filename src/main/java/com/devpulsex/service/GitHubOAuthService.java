@@ -33,7 +33,9 @@ public class GitHubOAuthService {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUri = redirectUri;
-        this.webClient = WebClient.builder().build();
+        this.webClient = WebClient.builder()
+                .defaultHeader(HttpHeaders.USER_AGENT, "DevPulseX-Application")
+                .build();
     }
 
     @SuppressWarnings("null")

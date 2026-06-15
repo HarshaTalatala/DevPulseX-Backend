@@ -31,6 +31,7 @@ public class GitHubWebClientConfig {
     @SuppressWarnings("null")
     public WebClient githubWebClient() {
         return WebClient.builder()
+                .defaultHeader(org.springframework.http.HttpHeaders.USER_AGENT, "DevPulseX-Application")
                 .filter(rateLimitFilter())
                 .filter(logRequest())
                 .filter(logResponse())
