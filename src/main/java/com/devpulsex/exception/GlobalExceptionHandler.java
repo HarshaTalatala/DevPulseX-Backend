@@ -116,7 +116,7 @@ public class GlobalExceptionHandler {
                                 .timestamp(Instant.now())
                                 .status(HttpStatus.BAD_GATEWAY.value())
                                 .error("Trello API Error")
-                                .message("External integration failed")
+                                .message(ex.getMessage() != null ? ex.getMessage() : "External integration failed")
                                 .path(request.getRequestURI())
                                 .build();
                 return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);

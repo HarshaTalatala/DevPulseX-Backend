@@ -49,8 +49,8 @@ public class TrelloService {
             return boards;
         }
         catch (Exception e) {
-            log.error("Trello boards fetch failed");
-            throw new TrelloApiException("External integration failed", e);
+            log.error("Trello boards fetch failed", e);
+            throw new TrelloApiException(e.getMessage() != null ? e.getMessage() : "External integration failed", e);
         }
     }
     public JsonNode getBoardLists(String boardId, Authentication authentication) {
@@ -62,8 +62,8 @@ public class TrelloService {
             return lists;
         }
         catch (Exception e) {
-            log.error("Trello lists fetch failed");
-            throw new TrelloApiException("External integration failed", e);
+            log.error("Trello lists fetch failed", e);
+            throw new TrelloApiException(e.getMessage() != null ? e.getMessage() : "External integration failed", e);
         }
     }
     
@@ -76,8 +76,8 @@ public class TrelloService {
             return cards;
         }
         catch (Exception e) {
-            log.error("Trello cards fetch failed");
-            throw new TrelloApiException("External integration failed", e);
+            log.error("Trello cards fetch failed", e);
+            throw new TrelloApiException(e.getMessage() != null ? e.getMessage() : "External integration failed", e);
         }
     }
 
